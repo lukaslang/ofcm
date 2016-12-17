@@ -1,0 +1,58 @@
+OFDM - Optical Flow Dorsal Midline
+
+Lukas Lang (lukas.lang@ricam.oeaw.ac.at)
+Radon Institute of Computational and Applied Mathematics, Linz, Austria. http://www.ricam.oeaw.ac.at/
+
+1. Introduction
+
+This is a Matlab implementation as described in:
+
+TODO: Add paper.
+
+If you use this software in your work you must cite the abovementioned paper in any resulting publication!
+
+BibTeX:
+
+TODO: Add BibTeX
+
+2. License & Disclaimer
+
+Copyright 2015 Lukas Lang.
+
+This file is part of OFDM. OFDM is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+OFDM is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
+
+For the full license statement see the file COPYING.
+
+3. Requirements
+
+This library requires:
+a) OFISH: https://bitbucket.org/lukaslang/ofish
+b) OFD: https://bitbucket.org/lukaslang/ofd
+
+TODO: Complete (add xunit, etc.)
+
+4. Usage
+
+TODO: document OFDM usage.
+
+a) for faster processing
+
+>>cd external
+>>cd imgaussian
+>>mex imgaussian.c
+
+and make sure Matlab has rights to execute the imgaussian.mexw* file.
+
+b) set the path to your files in ofdm_datapath.m.
+
+5. Acknowledgements
+
+TODO: Add acknowledgements.
+
+a) tiffread.m
+b) imgaussian
+c) vol3d
