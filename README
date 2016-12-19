@@ -1,4 +1,4 @@
-OFDM - Optical Flow Dorsal Midline
+OFCM - Optical Flow and Conservation of Mass
 
 Lukas Lang (lukas.lang@ricam.oeaw.ac.at)
 Radon Institute of Computational and Applied Mathematics, Linz, Austria. http://www.ricam.oeaw.ac.at/
@@ -7,52 +7,128 @@ Radon Institute of Computational and Applied Mathematics, Linz, Austria. http://
 
 This is a Matlab implementation as described in:
 
-TODO: Add paper.
+L. F. Lang. Brightness and Mass Conservation on Evolving Sphere-Like Surfaces, working draft, 2016.
 
 If you use this software in your work you must cite the abovementioned paper in any resulting publication!
 
 BibTeX:
 
-TODO: Add BibTeX
+@techreport{Lan16_report,
+  author     = {Lang, L.~F.},
+  title      = {Brightness and Mass Conservation on Evolving Sphere-Like Surfaces},
+  institution= {RICAM, Austria},
+  type       = {Working draft},
+  year       = {2016}
+}
+
+This software package requires parts of
+
+L. F. Lang and O. Scherzer. Optical Flow on Evolving Sphere-Like Surfaces,
+Inverse Probl. Imaging, 2017.
+
+Preprint available at https://arxiv.org/abs/1506.03358
+
+which requires parts of
+
+C. Kirisits, L. F. Lang and O. Scherzer. Decomposition of optical flow on 
+the sphere, GEM. Int. J. Geomath., 5(1):117-141, April, 2014
+
+Available at http://dx.doi.org/10.1007/s13137-013-0055-8
+Preprint available at https://arxiv.org/abs/1312.4354
 
 2. License & Disclaimer
 
 Copyright 2015 Lukas Lang.
 
-This file is part of OFDM. OFDM is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This file is part of OFDM. OFDM is free software: you can redistribute it
+and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
 
-OFDM is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+OFDM is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more 
+details.
 
-You should have received a copy of the GNU General Public License along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along
+with OFDM.  If not, see <http://www.gnu.org/licenses/>.
 
 For the full license statement see the file COPYING.
 
+Moreover, this work incorporates source code from the color wheel by 
+Deqing Sun, Department of Computer Science, Brown University. The license 
+statement can be found in the respective files.
+
+Furthermore, this work includes source code of imgaussian and lgwt. The 
+license statement can be found in the respective folders.
+
+tiffread.m is licensed under GNU GPL v3.
+
 3. Requirements
 
-This library requires:
-a) OFISH: https://bitbucket.org/lukaslang/ofish
-b) OFD: https://bitbucket.org/lukaslang/ofd
+This software was originally written for and tested with Matlab R2015a.
 
-TODO: Complete (add xunit, etc.)
+The following libraries are required for parts of this sofware:
+
+xUnit: used for testing.
+URL: http://www.mathworks.com/matlabcentral/fileexchange/22846-matlab-xunit-test-framework 
+
+export_fig: used for producing high quality figures from the results.
+URL: http://www.mathworks.com/matlabcentral/fileexchange/23629-exportfig
+
+The following libraries are already included in the folder 'external':
+
+imgaussian: used for fast Gaussian filtering of 3D data.
+URL: http://de.mathworks.com/matlabcentral/fileexchange/25397-imgaussian
+
+tiffread.m: used for reading LSM microscopy data files.
+URL: http://www.cytosim.org/misc/index.html
+
+lgwt: used for computing Legendre-Gauss quadrature weights and nodes.
+URL: https://de.mathworks.com/matlabcentral/fileexchange/4540-legendre-gauss-quadrature-weights-and-nodes
+
+Moreover, it requires the code of OFD (Decomposition of Optical Flow on the Sphere).
+Download/check it out from https://bitbucket.org/lukaslang/ofd
+
+Moreover, it requires the code of OFISH (Optical Flow on Evolving Sphere-Like Surfaces).
+Download/check it out from https://bitbucket.org/lukaslang/ofish
 
 4. Usage
 
-TODO: document OFDM usage.
+For easier use we provide a startup script (startup.m), which sets up the 
+Matlab search path. It includes required libraries and adds required 
+subdirectories. Make sure to download the required packages and to set the 
+library paths properly. Then simply run the startup script.
 
-a) for faster processing
+To run the test cases execute
 
->>cd external
->>cd imgaussian
->>mex imgaussian.c
+>> runtests test
 
-and make sure Matlab has rights to execute the imgaussian.mexw* file.
+or
 
-b) set the path to your files in ofdm_datapath.m.
+>> runtests test -verbose
+
+to get more information (see xUnit for more information).
+
+In order to run the software with real data set the path to your LSM files
+in the script:
+
+- ofdm_datapath.m.
+
+The following run scripts are included:
+
+- runofdmp.m (computes the optical flow on evolving sphere-like surfaces)
+- runcm.m (computes the mass conservation-based velocity on evolving sphere-like surfaces)
+
+For faster processing we recommend compiling the imgaussian.c script:
+
+>> cd external
+>> cd imgaussian
+>> mex imgaussian.c
+
+Make sure Matlab has rights to execute the imgaussian.mexw* file!
 
 5. Acknowledgements
 
-TODO: Add acknowledgements.
-
-a) tiffread.m
-b) imgaussian
-c) vol3d
+We thank Pia Aanstad from the University of Innsbruck for kindly providing 
+the microscopy data.
