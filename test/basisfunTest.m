@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = basisfunTest
-    initTestSuite;
+function tests = basisfunTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Set parameters.
 k = 3;
@@ -34,11 +42,11 @@ n = size(y, 1);
 
 % Create basis functions.
 b = basisfun(k, h, x, y);
-assertEqual(size(b), [m, n]);
+assertEqual(testCase, size(b), [m, n]);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Set parameters.
 k = 3;
@@ -54,7 +62,7 @@ n = size(V, 1);
 
 % Create basis functions.
 b = basisfun(k, h, x, V);
-assertEqual(size(b), [m, n]);
+assertEqual(testCase, size(b), [m, n]);
 
 figure;
 trisurf(F, V(:, 1), V(:, 2), V(:, 3), b, 'EdgeColor', 'none', 'FaceColor', 'interp');

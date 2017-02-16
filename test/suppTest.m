@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = suppTest
-    initTestSuite;
+function tests = suppTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create one vertex.
 V = [1, 0, 0];
@@ -26,12 +34,12 @@ h = 0;
 
 % Compute support matrix.
 S = supp(V, h);
-assertEqual(size(S), [1, 1]);
-assertEqual(S, true);
+verifyEqual(testCase, size(S), [1, 1]);
+verifyEqual(testCase, S, true);
 
 end
 
-function result2Test
+function result2Test(testCase)
 
 % Create one vertex.
 V = [1, 0, 0;
@@ -40,12 +48,12 @@ h = 0.75;
 
 % Compute support matrix.
 S = supp(V, h);
-assertEqual(size(S), [2, 2]);
-assertEqual(S, logical(eye(2)));
+verifyEqual(testCase, size(S), [2, 2]);
+verifyEqual(testCase, S, logical(eye(2)));
 
 end
 
-function result3Test
+function result3Test(testCase)
 
 % Create one vertex.
 V = [1, 0, 0;
@@ -54,7 +62,7 @@ h = cos(pi/4);
 
 % Compute support matrix.
 S = supp(V, h);
-assertEqual(size(S), [2, 2]);
-assertEqual(S, true(2));
+verifyEqual(testCase, size(S), [2, 2]);
+verifyEqual(testCase, S, true(2));
 
 end

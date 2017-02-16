@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surftanbasisderivTest
-    initTestSuite;
+function tests = surftanbasisderivTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -44,16 +52,16 @@ el = pi/2 - el;
 
 % Compute tangent basis.
 [d11, d12, d21, d22] = surftanbasisderiv(N, c, [el, az]);
-assertEqual(size(d11), [n, 3]);
-assertEqual(size(d12), [n, 3]);
-assertEqual(size(d21), [n, 3]);
-assertEqual(size(d22), [n, 3]);
+verifyEqual(testCase, size(d11), [n, 3]);
+verifyEqual(testCase, size(d12), [n, 3]);
+verifyEqual(testCase, size(d21), [n, 3]);
+verifyEqual(testCase, size(d22), [n, 3]);
 
 % Compare to tangent basis of sphere.
 [d11s, d12s, d21s, d22s] = sphtanbasisderiv([el, az]);
-assertAlmostEqual(d11, d11s, 1e-10);
-assertAlmostEqual(d12, d12s, 1e-10);
-assertAlmostEqual(d21, d21s, 1e-10);
-assertAlmostEqual(d22, d22s, 1e-10);
+verifyEqual(testCase, d11, d11s, 'absTol', 1e-10);
+verifyEqual(testCase, d12, d12s, 'absTol', 1e-10);
+verifyEqual(testCase, d21, d21s, 'absTol', 1e-10);
+verifyEqual(testCase, d22, d22s, 'absTol', 1e-10);
 
 end

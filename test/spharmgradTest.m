@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = spharmgradTest
-    initTestSuite;
+function tests = spharmgradTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Set parameters.
 N = 3;
@@ -29,11 +37,11 @@ n = size(y, 1);
 
 % Create basis functions.
 u = spharmgrad(N, y);
-assertEqual(size(u), [n, 2*N + 1, 3]);
+verifyEqual(testCase, size(u), [n, 2*N + 1, 3]);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Set parameters.
 N = 3;
@@ -55,7 +63,7 @@ Ynj = spharm(N, V);
 
 % Create basis functions.
 u = spharmgrad(N, V);
-assertEqual(size(u), [n, 2*N + 1, 3]);
+verifyEqual(testCase, size(u), [n, 2*N + 1, 3]);
 
 % Pick one order for plotting.
 k = 2;

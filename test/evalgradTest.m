@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = evalgradTest
-    initTestSuite;
+function tests = evalgradTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create evaluation points.
 [~, V] = sphTriang(4);
@@ -35,7 +43,7 @@ sc = [1, 1, 1];
 
 % Evaluate.
 gradfx = evalgrad(f, scale, {V; V}, {V; V}, sc, [0.8, 1], 10);
-assertEqual(length(gradfx), 2);
-assertEqual(size(gradfx{1}), [n, 3]);
+verifyEqual(testCase, length(gradfx), 2);
+verifyEqual(testCase, size(gradfx{1}), [n, 3]);
 
 end

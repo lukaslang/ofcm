@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = sphcoordTest
-    initTestSuite;
+function tests = sphcoordTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create ONB.
 e = eye(3);
@@ -30,15 +38,15 @@ xi = [0, 0;
 
 % Compute points.  
 x = sphcoord(xi, e);
-assertEqual(size(x), [size(xi, 1), 3]);
-assertAlmostEqual(x, [0, 0, 1; 1, 0, 0; 0, 0, -1]);
+verifyEqual(testCase, size(x), [size(xi, 1), 3]);
+verifyEqual(testCase, x, [0, 0, 1; 1, 0, 0; 0, 0, -1], 'absTol', 1e-15);
 
 % Check norm equals to one.
-assertAlmostEqual(sum(x.^2, 2), ones(3, 1));
+verifyEqual(testCase, sum(x.^2, 2), ones(3, 1), 'absTol', 1e-15);
 
 end
 
-function result2Test
+function result2Test(testCase)
 
 % Create ONB.
 e = [0, 0, 1;
@@ -52,15 +60,15 @@ xi = [0, 0;
 
 % Compute points.  
 x = sphcoord(xi, e);
-assertEqual(size(x), [size(xi, 1), 3]);
-assertAlmostEqual(x, [-1, 0, 0; 0, 0, 1; 1, 0, 0]);
+verifyEqual(testCase, size(x), [size(xi, 1), 3]);
+verifyEqual(testCase, x, [-1, 0, 0; 0, 0, 1; 1, 0, 0], 'absTol', 1e-15);
 
 % Check norm equals to one.
-assertAlmostEqual(sum(x.^2, 2), ones(3, 1));
+verifyEqual(testCase, sum(x.^2, 2), ones(3, 1), 'absTol', 1e-15);
 
 end
 
-function result3Test
+function result3Test(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -77,6 +85,6 @@ R = [cos(theta), 0, sin(theta); 0, 1, 0; -sin(theta), 0, cos(theta)];
 y = sphcoord([el, az], R);
 
 % Check if same as rotated original.
-assertAlmostEqual(V*R, y);
+verifyEqual(testCase, V*R, y, 'absTol', 1e-15);
 
 end

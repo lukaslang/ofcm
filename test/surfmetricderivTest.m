@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfmetricderivTest
-    initTestSuite;
+function tests = surfmetricderivTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -47,27 +55,27 @@ el = pi/2 - el;
 
 % Compute derivatives of metric tensor.
 [d1g11, d1g12, d1g21, d1g22, d2g11, d2g12, d2g21, d2g22] = surfmetricderiv(N, c, rho, [el, az]);
-assertEqual(size(d1g11), [n, 1]);
-assertEqual(size(d1g12), [n, 1]);
-assertEqual(size(d1g21), [n, 1]);
-assertEqual(size(d1g22), [n, 1]);
-assertEqual(size(d2g11), [n, 1]);
-assertEqual(size(d2g12), [n, 1]);
-assertEqual(size(d2g21), [n, 1]);
-assertEqual(size(d2g22), [n, 1]);
+verifyEqual(testCase, size(d1g11), [n, 1]);
+verifyEqual(testCase, size(d1g12), [n, 1]);
+verifyEqual(testCase, size(d1g21), [n, 1]);
+verifyEqual(testCase, size(d1g22), [n, 1]);
+verifyEqual(testCase, size(d2g11), [n, 1]);
+verifyEqual(testCase, size(d2g12), [n, 1]);
+verifyEqual(testCase, size(d2g21), [n, 1]);
+verifyEqual(testCase, size(d2g22), [n, 1]);
 
-assertAlmostEqual(d1g12, zeros(n, 1));
-assertAlmostEqual(d1g21, zeros(n, 1));
-assertAlmostEqual(d1g11, zeros(n, 1));
-assertAlmostEqual(d1g22, sin(2*el), 1e-10);
-assertAlmostEqual(d2g12, zeros(n, 1));
-assertAlmostEqual(d2g21, zeros(n, 1));
-assertAlmostEqual(d2g11, zeros(n, 1));
-assertAlmostEqual(d2g22, zeros(n, 1));
+verifyEqual(testCase, d1g12, zeros(n, 1));
+verifyEqual(testCase, d1g21, zeros(n, 1));
+verifyEqual(testCase, d1g11, zeros(n, 1));
+verifyEqual(testCase, d1g22, sin(2*el), 'absTol', 1e-10);
+verifyEqual(testCase, d2g12, zeros(n, 1));
+verifyEqual(testCase, d2g21, zeros(n, 1));
+verifyEqual(testCase, d2g11, zeros(n, 1));
+verifyEqual(testCase, d2g22, zeros(n, 1));
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create triangulation of unit sphere.
 [F, V] = sphTriang(4);

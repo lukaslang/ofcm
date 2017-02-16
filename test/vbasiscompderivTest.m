@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = vbasiscompderivTest
-    initTestSuite;
+function tests = vbasiscompderivTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Set parameters.
 k = 3;
@@ -34,14 +42,14 @@ n = size(y, 1);
 
 % Create basis functions.
 [dy1d1, dy1d2, dy2d1, dy2d2] = vbasiscompderiv(k, h, x, y);
-assertEqual(size(dy1d1), [2*m, n]);
-assertEqual(size(dy1d2), [2*m, n]);
-assertEqual(size(dy2d1), [2*m, n]);
-assertEqual(size(dy2d2), [2*m, n]);
+verifyEqual(testCase, size(dy1d1), [2*m, n]);
+verifyEqual(testCase, size(dy1d2), [2*m, n]);
+verifyEqual(testCase, size(dy2d1), [2*m, n]);
+verifyEqual(testCase, size(dy2d2), [2*m, n]);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Set parameters.
 k = 4;
@@ -57,11 +65,11 @@ n = size(V, 1);
 
 % Create basis functions.
 b = basisfun(k, h, x, V);
-assertEqual(size(b), [m, n]);
+verifyEqual(testCase, size(b), [m, n]);
 
 % Create basis functions.
 y = vbasisfun(k, h, x, V);
-assertEqual(size(y), [2*m, n, 3]);
+verifyEqual(testCase, size(y), [2*m, n, 3]);
 
 % Permute for plotting.
 u = permute(y(1:m, :, :), [2, 3, 1]);

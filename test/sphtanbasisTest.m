@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = sphtanbasisTest
-    initTestSuite;
+function tests = sphtanbasisTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Define points.
 xi = [0, 0;
@@ -27,12 +35,12 @@ xi = [0, 0;
 
 % Compute tangent basis.  
 [d1, d2] = sphtanbasis(xi, eye(3));
-assertEqual(size(d1), [size(xi, 1), 3]);
-assertEqual(size(d2), [size(xi, 1), 3]);
+verifyEqual(testCase, size(d1), [size(xi, 1), 3]);
+verifyEqual(testCase, size(d2), [size(xi, 1), 3]);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create evaluation points.
 [F, V] = sphTriang(5);
@@ -54,7 +62,7 @@ view(3);
 
 end
 
-function visualize2Test
+function visualize2Test(testCase)
 
 % Create evaluation points.
 [F, V] = sphTriang(5);

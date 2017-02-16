@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfinvmetricTest
-    initTestSuite;
+function tests = surfinvmetricTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -51,20 +59,20 @@ detg = g11 .* g22 - g12 .* g21;
 
 % Compute inverse metric tensor.
 [ginv11, ginv12, ginv21, ginv22] = surfinvmetric(N, c, rho, [el, az], detg);
-assertEqual(size(ginv11), [n, 1]);
-assertEqual(size(ginv12), [n, 1]);
-assertEqual(size(ginv21), [n, 1]);
-assertEqual(size(ginv22), [n, 1]);
+verifyEqual(testCase, size(ginv11), [n, 1]);
+verifyEqual(testCase, size(ginv12), [n, 1]);
+verifyEqual(testCase, size(ginv21), [n, 1]);
+verifyEqual(testCase, size(ginv22), [n, 1]);
 
 % Check if spherical metric.
-assertAlmostEqual(ginv12, zeros(n, 1));
-assertAlmostEqual(ginv21, zeros(n, 1));
-assertAlmostEqual(ginv11, ones(n, 1), 1e-6);
-assertAlmostEqual(ginv22, 1 ./ sin(el).^2, 1e-6);
+verifyEqual(testCase, ginv12, zeros(n, 1));
+verifyEqual(testCase, ginv21, zeros(n, 1));
+verifyEqual(testCase, ginv11, ones(n, 1), 'absTol', 1e-6);
+verifyEqual(testCase, ginv22, 1 ./ sin(el).^2, 'absTol', 1e-4);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create triangulation of unit sphere.
 [F, V] = sphTriang(4);

@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = vbasiscompTest
-    initTestSuite;
+function tests = vbasiscompTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Set parameters.
 k = 4;
@@ -37,12 +45,12 @@ m = size(X, 1);
 
 % Create basis functions.
 [dy1, dy2] = vbasiscomp(k, h, X, Y);
-assertEqual(size(dy1), [2*m, n]);
-assertEqual(size(dy2), [2*m, n]);
+verifyEqual(testCase, size(dy1), [2*m, n]);
+verifyEqual(testCase, size(dy2), [2*m, n]);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Set parameters.
 k = 5;
@@ -70,7 +78,7 @@ dy2 = full(dy2);
 
 % Create basis functions.
 y = vbasisfun(k, h, X, Y);
-assertEqual(size(y), [2*m, n, 3]);
+verifyEqual(testCase, size(y), [2*m, n, 3]);
 
 % Permute for plotting.
 u = permute(y(1:m, :, :), [2, 3, 1]);

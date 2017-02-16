@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfgradnormsquaredTest
-    initTestSuite;
+function tests = surfgradnormsquaredTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -44,14 +52,14 @@ el = pi/2 - el;
 
 % Compute metric tensor.
 f = surfgradnormsquared(N, c, [el, az]);
-assertEqual(size(f), [n, 1]);
+verifyEqual(testCase, size(f), [n, 1]);
 
 % Check if spherical metric.
-assertAlmostEqual(f, zeros(n, 1));
+verifyEqual(testCase, f, zeros(n, 1));
 
 end
 
-function result2Test
+function result2Test(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -77,14 +85,14 @@ el = pi/2 - el;
 
 % Compute metric tensor.
 f = surfgradnormsquared(N, c, [el, az]);
-assertEqual(size(f), [n, 1]);
+verifyEqual(testCase, size(f), [n, 1]);
 
 v = sum(surfgrad(N, c, [el, az]).^2, 2);
-assertAlmostEqual(v, f, 1e-6);
+verifyEqual(testCase, v, f, 'absTol', 1e-6);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create triangulation of unit sphere.
 [F, V] = sphTriang(4);

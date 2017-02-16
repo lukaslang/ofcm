@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfmetricTest
-    initTestSuite;
+function tests = surfmetricTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -50,20 +58,20 @@ el = pi/2 - el;
 
 % Compute metric tensor.
 [g11, g12, g21, g22] = surfmetric(N, c, rho, [el, az]);
-assertEqual(size(g11), [n, 1]);
-assertEqual(size(g12), [n, 1]);
-assertEqual(size(g21), [n, 1]);
-assertEqual(size(g22), [n, 1]);
+verifyEqual(testCase, size(g11), [n, 1]);
+verifyEqual(testCase, size(g12), [n, 1]);
+verifyEqual(testCase, size(g21), [n, 1]);
+verifyEqual(testCase, size(g22), [n, 1]);
 
 % Check if spherical metric.
-assertAlmostEqual(g12, zeros(n, 1));
-assertAlmostEqual(g21, zeros(n, 1));
-assertAlmostEqual(g11, r^2 * ones(n, 1), 1e-6);
-assertAlmostEqual(g22, r^2 * sin(el).^2, 1e-6);
+verifyEqual(testCase, g12, zeros(n, 1));
+verifyEqual(testCase, g21, zeros(n, 1));
+verifyEqual(testCase, g11, r^2 * ones(n, 1), 'absTol', 1e-6);
+verifyEqual(testCase, g22, r^2 * sin(el).^2, 'absTol', 1e-6);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create triangulation of unit sphere.
 [F, V] = sphTriang(4);

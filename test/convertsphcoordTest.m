@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = convertsphcoordTest
-    initTestSuite;
+function tests = convertsphcoordTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Define points.
 xi = [0, 0;
@@ -28,11 +36,11 @@ xi = [0, 0;
 
 % Compute points.  
 [el, az] = convertsphcoord(xi, eye(3));
-assertAlmostEqual([el, az], xi);
+verifyEqual(testCase, [el, az], xi, 'absTol', 1e-16);
 
 end
 
-function result2Test
+function result2Test(testCase)
 
 % Define points.
 xi = [0, 0;
@@ -46,19 +54,19 @@ R = [cos(theta), 0, sin(theta); 0, 1, 0; -sin(theta), 0, cos(theta)];
 
 % Compute points on sphere.
 x = sphcoord(xi, eye(3));
-assertAlmostEqual(x, [0, 0, 1; 1, 0, 0; 0, 0, -1; 0, 1, 0]);
+verifyEqual(testCase, x, [0, 0, 1; 1, 0, 0; 0, 0, -1; 0, 1, 0], 'absTol', 1e-6);
 
 % Compute points.
 [el, az] = convertsphcoord(xi, R);
-assertAlmostEqual([el, az], [pi/2, 0; pi, 0; pi/2, pi; pi/2, pi/2]);
+verifyEqual(testCase, [el, az], [pi/2, 0; pi, 0; pi/2, pi; pi/2, pi/2], 'absTol', 1e-6);
 
 % Check if points are equal.
 y = sphcoord([el, az], R);
-assertAlmostEqual(x, y);
+verifyEqual(testCase, x, y, 'absTol', 1e-6);
 
 end
 
-function result3Test
+function result3Test(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -79,6 +87,6 @@ R = [cos(theta), 0, sin(theta); 0, 1, 0; -sin(theta), 0, cos(theta)];
 y = sphcoord([el, az], R);
 
 % Check if same as original.
-assertAlmostEqual(V, y);
+verifyEqual(testCase, V, y, 'absTol', 1e-6);
 
 end

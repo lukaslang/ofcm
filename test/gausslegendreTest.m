@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = gausslegendreTest
-    initTestSuite;
+function tests = gausslegendreTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Set parameters.
 deg = 100;
@@ -27,14 +35,14 @@ deg = 100;
 N = (floor(deg/2) + 1)*(deg + 1);
 
 [xi, w] = gausslegendre(deg, pi/2);
-assertEqual(size(xi), [N, 2]);
-assertTrue(isvector(w));
-assertEqual(length(xi), N);
-assertEqual(length(w), N);
+verifyEqual(testCase, size(xi), [N, 2]);
+verifyTrue(testCase, isvector(w));
+verifyEqual(testCase, length(xi), N);
+verifyEqual(testCase, length(w), N);
 
 end
 
-function integrateConstantFunctionTest
+function integrateConstantFunctionTest(testCase)
 
 % Set parameters.
 deg = 100;
@@ -42,11 +50,11 @@ deg = 100;
 [~, w] = gausslegendre(deg, pi/2);
 
 % Integrate constant function.
-assertAlmostEqual(sum(w), 2*pi);
+verifyEqual(testCase, sum(w), 2*pi, 'absTol', 1e-6);
 
 end
 
-function integrateConstantSphericalHarmonicTest
+function integrateConstantSphericalHarmonicTest(testCase)
 
 % Set parameters.
 deg = 100;
@@ -59,11 +67,11 @@ N = 0;
 Y = spharmp(N, xi(:, 2), cos(xi(:, 1)));
 
 % Integrate constant function.
-assertAlmostEqual(sum(Y.^2'*w), 0.5);
+verifyEqual(testCase, sum(Y.^2'*w), 0.5, 'absTol', 1e-6);
 
 end
 
-function integrateSphericalHarmonicTest
+function integrateSphericalHarmonicTest(testCase)
 
 % Set parameters.
 deg = 40;
@@ -78,7 +86,7 @@ Y = spharmp(N, xi(:, 2), cos(xi(:, 1)));
 for k=1:2*N+1
     % Integrate.
     v = (Y(:, k).^2)'*w;
-    assertAlmostEqual(v, 1);
+    verifyEqual(testCase, v, 1, 'absTol', 1e-6);
 end
 
 end

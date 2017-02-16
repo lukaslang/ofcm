@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = aligncentersTest
-    initTestSuite;
+function tests = aligncentersTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create centers.
 S = cell(2, 1);
@@ -29,9 +37,9 @@ S{2} = [X(:), Y(:), Z(:)];
 
 % Align.
 [C, sc, sr] = aligncenters(S, 1.5);
-assertAlmostEqual(C{1}, S{1}, 1e-4);
-assertAlmostEqual(C{2}, S{2}, 1e-4);
-assertAlmostEqual(sc, [0, 0, 0], 1e-4);
-assertAlmostEqual(sr, 1, 1e-4);
+verifyEqual(testCase, C{1}, S{1}, 'absTol', 1e-4);
+verifyEqual(testCase, C{2}, S{2}, 'absTol', 1e-4);
+verifyEqual(testCase, sc, [0, 0, 0], 'absTol', 1e-4);
+verifyEqual(testCase, sr, 1, 'absTol', 1e-4);
 
 end

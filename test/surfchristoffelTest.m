@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfchristoffelTest
-    initTestSuite;
+function tests = surfchristoffelTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -50,24 +58,24 @@ el = pi/2 - el;
 
 % Compute Christoffel symbols.
 [c111, c112, c121, c122, c221, c222] = surfchristoffel(N, c, rho, [el, az]);
-assertEqual(size(c111), [n, 1]);
-assertEqual(size(c112), [n, 1]);
-assertEqual(size(c121), [n, 1]);
-assertEqual(size(c122), [n, 1]);
-assertEqual(size(c221), [n, 1]);
-assertEqual(size(c222), [n, 1]);
+verifyEqual(testCase, size(c111), [n, 1]);
+verifyEqual(testCase, size(c112), [n, 1]);
+verifyEqual(testCase, size(c121), [n, 1]);
+verifyEqual(testCase, size(c122), [n, 1]);
+verifyEqual(testCase, size(c221), [n, 1]);
+verifyEqual(testCase, size(c222), [n, 1]);
 
-assertAlmostEqual(c111, zeros(n, 1));
-assertAlmostEqual(c121, zeros(n, 1));
-assertAlmostEqual(c221, -sin(el) .* cos(el));
+verifyEqual(testCase, c111, zeros(n, 1), 'absTol', 1e-14);
+verifyEqual(testCase, c121, zeros(n, 1), 'absTol', 1e-14);
+verifyEqual(testCase, c221, -sin(el) .* cos(el), 'absTol', 1e-14);
 
-assertAlmostEqual(c112, zeros(n, 1));
-assertAlmostEqual(c122, cot(el));
-assertAlmostEqual(c222, zeros(n, 1));
+verifyEqual(testCase, c112, zeros(n, 1), 'absTol', 1e-14);
+verifyEqual(testCase, c122, cot(el), 'absTol', 1e-12);
+verifyEqual(testCase, c222, zeros(n, 1), 'absTol', 1e-14);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create triangulation of unit sphere.
 [F, V] = sphTriang(4);

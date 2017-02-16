@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = readlsmTest
-    initTestSuite;
+function tests = readlsmTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Specify dataset.
 name = 'cxcr4aMO2_290112_Maximumintensityprojection';
@@ -28,8 +36,8 @@ file = fullfile(dataFolder, strcat(name, '.lsm'));
 % Read LSM file.
 [lsm, rng] = readlsm(file);
 
-assertFalse(isempty(lsm));
-assertFalse(isempty(rng));
-assertEqual(rng, 1:151);
+verifyFalse(testCase, isempty(lsm));
+verifyFalse(testCase, isempty(rng));
+verifyEqual(testCase, rng, 1:151);
 
 end

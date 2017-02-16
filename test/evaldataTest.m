@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = evaldataTest
-    initTestSuite;
+function tests = evaldataTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create evaluation points.
 [~, V] = sphTriang(4);
@@ -35,7 +43,7 @@ sc = [1, 1, 1];
 
 % Evaluate.
 fx = evaldata(f, scale, {V; V}, sc, [0.8, 1], 10);
-assertEqual(length(fx), 2);
-assertEqual(size(fx{1}), [n, 1]);
+verifyEqual(testCase, length(fx), 2);
+verifyEqual(testCase, size(fx{1}), [n, 1]);
 
 end

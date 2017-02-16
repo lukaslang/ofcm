@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = spharmderivTest
-    initTestSuite;
+function tests = spharmderivTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Set parameters.
 Ns = 3;
@@ -33,12 +41,12 @@ el = pi/2 - el;
 
 % Create basis functions.
 [d1, d2] = spharmderiv(Ns, [el, az]);
-assertEqual(size(d1), [n, 2*Ns + 1]);
-assertEqual(size(d2), [n, 2*Ns + 1]);
+verifyEqual(testCase, size(d1), [n, 2*Ns + 1]);
+verifyEqual(testCase, size(d2), [n, 2*Ns + 1]);
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Set parameters.
 N = 1;

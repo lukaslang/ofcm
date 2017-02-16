@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfnormalsTest
-    initTestSuite;
+function tests = surfnormalsTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -44,9 +52,9 @@ el = pi/2 - el;
 
 % Compute tangent basis.
 N = surfnormals(N, c, [el, az]);
-assertEqual(size(N), [n, 3]);
+verifyEqual(testCase, size(N), [n, 3]);
 
 % Check if ip is equal to one.
-assertAlmostEqual(dot(N, V, 2), ones(n, 1));
+verifyEqual(testCase, dot(N, V, 2), ones(n, 1), 'absTol', 1e-15);
 
 end

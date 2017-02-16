@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfdivTest
-    initTestSuite;
+function tests = surfdivTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -60,12 +68,12 @@ v = surfdiv(Ns, cs, [el, az], k, h, X);
 
 % Multiply with coefficients.
 v = (v') * c;
-assertEqual(size(v), [n, 1]);
-assertAlmostEqual(v, zeros(n, 1));
+verifyEqual(testCase, size(v), [n, 1]);
+verifyEqual(testCase, v, zeros(n, 1));
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create triangulation of unit sphere.
 [F, V] = sphTriang(5);

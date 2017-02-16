@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = surfgradTest
-    initTestSuite;
+function tests = surfgradTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create triangulation of unit sphere.
 [~, V] = sphTriang(4);
@@ -44,14 +52,14 @@ el = pi/2 - el;
 
 % Compute metric tensor.
 f = surfgrad(N, c, [el, az]);
-assertEqual(size(f), [n, 3]);
+verifyEqual(testCase, size(f), [n, 3]);
 
 % Check if zero.
-assertAlmostEqual(f, zeros(n, 3));
+verifyEqual(testCase, f, zeros(n, 3));
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Create triangulation of unit sphere.
 [F, V] = sphTriang(4);
@@ -89,6 +97,6 @@ view(3);
 quiver3(V(:, 1), V(:, 2), V(:, 3), f(:, 1), f(:, 2), f(:, 3), 'r');
 
 % Check if tangential.
-assertAlmostEqual(dot(f, V, 2), zeros(n, 1));
+verifyEqual(testCase, dot(f, V, 2), zeros(n, 1), 'absTol', 1e-15);
 
 end

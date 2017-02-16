@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = lsmframeTest
-    initTestSuite;
+function tests = lsmframeTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Create data.
 d = randi(255, [512, 512, 10]);
@@ -32,11 +40,11 @@ for k=1:10
 end
 
 f = lsmframe(lsm, 1, 1);
-assertEqual(f, d);
+verifyEqual(testCase, f, d);
 
 end
 
-function multipleFramesTest
+function multipleFramesTest(testCase)
 
 % Create data.
 d = randi(255, [512, 512, 50]);
@@ -50,11 +58,11 @@ for k=1:50
 end
 
 f = lsmframe(lsm, 2, 1);
-assertEqual(f, d(:, :, 11:20));
+verifyEqual(testCase, f, d(:, :, 11:20));
 
 end
 
-function twoDimensionsTest
+function twoDimensionsTest(testCase)
 
 % Create data.
 d = randi(255, [512, 512, 5]);
@@ -68,11 +76,11 @@ for k=1:5
 end
 
 f = lsmframe(lsm, 3, 1);
-assertEqual(f, d(:, :, 3));
+verifyEqual(testCase, f, d(:, :, 3));
 
 end
 
-function multipleFramesWithBandsTest
+function multipleFramesWithBandsTest(testCase)
 
 % Create data.
 d1 = randi(255, [512, 512, 50]);
@@ -88,9 +96,9 @@ for k=1:50
 end
 
 f = lsmframe(lsm, 2, 1);
-assertEqual(f, d1(:, :, 11:20));
+verifyEqual(testCase, f, d1(:, :, 11:20));
 
 f = lsmframe(lsm, 3, 2);
-assertEqual(f, d2(:, :, 21:30));
+verifyEqual(testCase, f, d2(:, :, 21:30));
 
 end

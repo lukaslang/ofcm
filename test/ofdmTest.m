@@ -14,11 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function test_suite = ofdmTest
-    initTestSuite;
+function tests = ofdmTest
+    tests = functiontests(localfunctions);
 end
 
-function resultTest
+function setupOnce(testCase)
+    cd('../');
+end
+
+function teardownOnce(testCase)
+    cd('test');
+end
+
+function resultTest(testCase)
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 3;
@@ -50,12 +58,12 @@ alpha = 1;
 
 % Compute coefficients for optical flow.
 ofc = ofdm(Ns, cs, X, k, h, xi, w, gradfx, dtfx, alpha);
-assertEqual(size(ofc), [2*size(X, 1), 1]);
-assertAlmostEqual(ofc, zeros(2*size(X, 1), 1));
+verifyEqual(testCase, size(ofc), [2*size(X, 1), 1]);
+verifyEqual(testCase, ofc, zeros(2*size(X, 1), 1));
 
 end
 
-function visualizeTest
+function visualizeTest(testCase)
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 4;
@@ -177,7 +185,7 @@ view(2);
 
 end
 
-function visualize2Test
+function visualize2Test(testCase)
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 3;
@@ -306,7 +314,7 @@ view(2);
 
 end
 
-function visualize3Test
+function visualize3Test(testCase)
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 3;
