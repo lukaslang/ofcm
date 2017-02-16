@@ -14,7 +14,7 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function p = ofdm_datapath
-%OFDM_DATAPATH Returns the path where the microscopy data is stored.
+function p = ofcm_datapath
+%OFCM_DATAPATH Returns the path where the microscopy data is stored.
 
-p = fullfile('z:', 'data');
+p = fullfile('/Users/lukaslang/Dropbox (Cambridge University)/data');

@@ -22,7 +22,7 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-path = fullfile(ofdm_datapath, 'LSM 16.03.2012');
+path = fullfile(ofcm_datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 %frames = 139:141;
 frames = 112:115;

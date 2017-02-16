@@ -14,10 +14,10 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function [ofc, L] = ofdm(Ns, cs, X, k, h, xi, w, gradf, dtdf, alpha)
-%OFDM Computes coefficients of optical flow.
+function [ofc, L] = of(Ns, cs, X, k, h, xi, w, gradf, dtdf, alpha)
+%OF Computes coefficients of optical flow.
 %   
-%   ofc = OFDM(Ns, cs, x, k, h, xi, w, gradf, dtdf, alpha) takes degrees Ns
+%   ofc = OF(Ns, cs, x, k, h, xi, w, gradf, dtdf, alpha) takes degrees Ns
 %   and Fourier coefficients cs of the surface, center points X of basis 
 %   functions, degree k, a scaling factor h, quadrature rule [xi, w], and 
 %   gradient gradf of data, temporal derivative dtdf, and a regularisation 

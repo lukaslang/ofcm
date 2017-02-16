@@ -30,7 +30,7 @@ function resultTest(testCase)
 
 % Specify dataset.
 name = 'cxcr4aMO2_290112_Maximumintensityprojection';
-dataFolder = fullfile(ofdm_datapath, 'LSM 16.03.2012');
+dataFolder = fullfile(ofcm_datapath, 'LSM 16.03.2012');
 file = fullfile(dataFolder, strcat(name, '.lsm'));
 
 % Read LSM file.

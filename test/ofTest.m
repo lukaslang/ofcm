@@ -14,7 +14,7 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function tests = ofdmTest
+function tests = ofTest
     tests = functiontests(localfunctions);
 end
 
@@ -57,7 +57,7 @@ dtfx = zeros(n, 1);
 alpha = 1;
 
 % Compute coefficients for optical flow.
-ofc = ofdm(Ns, cs, X, k, h, xi, w, gradfx, dtfx, alpha);
+ofc = of(Ns, cs, X, k, h, xi, w, gradfx, dtfx, alpha);
 verifyEqual(testCase, size(ofc), [2*size(X, 1), 1]);
 verifyEqual(testCase, ofc, zeros(2*size(X, 1), 1));
 
@@ -109,7 +109,7 @@ gradfx = surfgrad(N, c, xi);
 alpha = 1;
 
 % Compute coefficients for optical flow.
-ofc = ofdm(Ns, cs, X, k, h, xi, w, gradfx, dtfx, alpha);
+ofc = of(Ns, cs, X, k, h, xi, w, gradfx, dtfx, alpha);
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(5);
@@ -231,7 +231,7 @@ gradfx = squeeze(u(1, :, :));
 alpha = 1;
 
 % Compute coefficients for optical flow.
-ofc = ofdm(Ns, cs, X, k, h, xi, w, gradfx, dtfx, alpha);
+ofc = of(Ns, cs, X, k, h, xi, w, gradfx, dtfx, alpha);
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(5);
