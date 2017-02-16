@@ -18,23 +18,20 @@
 % This script sets up the paths of the libraries and adds all subfolders.
 
 % Set library path.
-libraryPath = 'Z:\libraries\';
-
-% xUnit is required for testing.
-addpath(genpath(fullfile(libraryPath, 'matlab_xunit')));
+libraryPath = '../';
 
 % Export Figure is required for saving figures.
 addpath(genpath(fullfile(libraryPath, 'export_fig')));
 
 % Add OFD.
-ofdPath = 'Z:\git\ofd';
-addpath(genpath(fullfile(ofdPath, 'util\')));
-addpath(genpath(fullfile(ofdPath, 'colourwheel\')));
-addpath(genpath(fullfile(ofdPath, 'visualisation\')));
+ofdPath = '../ofd';
+addpath(genpath(fullfile(ofdPath, 'util')));
+addpath(genpath(fullfile(ofdPath, 'colourwheel')));
+addpath(genpath(fullfile(ofdPath, 'visualisation')));
 
 % Add OFISH.
-ofishPath = 'Z:\git\ofish';
-addpath(genpath(fullfile(ofishPath, 'util\')));
+ofishPath = '../ofish';
+addpath(genpath(fullfile(ofishPath, 'util')));
 
 % Add all subfolders.
 y = dir('.');
