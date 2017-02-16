@@ -1,19 +1,19 @@
-% Copyright 2015 Lukas Lang
+% Copyright 2017 Lukas Lang
 %
-% This file is part of OFDM.
+% This file is part of OFCM.
 %
-%    OFDM is free software: you can redistribute it and/or modify
+%    OFCM is free software: you can redistribute it and/or modify
 %    it under the terms of the GNU General Public License as published by
 %    the Free Software Foundation, either version 3 of the License, or
 %    (at your option) any later version.
 %
-%    OFDM is distributed in the hope that it will be useful,
+%    OFCM is distributed in the hope that it will be useful,
 %    but WITHOUT ANY WARRANTY; without even the implied warranty of
 %    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %    GNU General Public License for more details.
 %
 %    You should have received a copy of the GNU General Public License
-%    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
+%    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 function [cmc, L] = cm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, alpha)
 %OFDM Computes coefficients of mass conservation.
 %   
@@ -41,9 +41,9 @@ function [cmc, L] = cm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, alpha)
 %   L is a struct with info about linear system solve.
 
 % Compute optimality conditions.
-[~, A, D, ~, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, ones(size(f, 1), 1));
+[~, A, D, ~, ~, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, ones(size(f, 1), 1));
 
 % Solve linear system.
-[cmc, L] = solvesystem(A + alpha * D, b, 1e-6, 1000);
+[cmc, L] = solvesystem(A + alpha * D, b, 1e-6, min(1000, size(A, 1)));
 
 end

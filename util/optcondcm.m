@@ -14,11 +14,11 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
-function [dim, A, D, E, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, s)
-%SURFLINEARSYSTEM Computes the optimality conditions and returns a linear 
+function [dim, A, D, E, G, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, s)
+%optcondcm Computes the optimality conditions and returns a linear 
 %system used in mass conservation on a sphere-like surface.
 %
-%   [dim, A, D, E, b] = OPTCONDCM(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, s) 
+%   [dim, A, D, E, G, b] = OPTCONDCM(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, s) 
 %   takes degrees Ns and Fourier coefficients cs1, cs2 of the surface, 
 %   center points X of basis functions, degree k, a scaling factor h, 
 %   quadrature rule [xi, w], and  gradient gradf of data, temporal 
@@ -41,9 +41,9 @@ function [dim, A, D, E, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf
 %   
 %   The linear system returned is
 %
-%   (A + alpha * D + beta * E) * x = b.
+%   (A + alpha * D + beta * E + gamma * G) * x = b.
 %
-%   A, D, and E are matrices of size [2*m, 2*m].
+%   A, D, E, and G are matrices of size [2*m, 2*m].
 %   b is the right hand side and is of length 2*m.
 
 % Number of basis functions.
@@ -56,19 +56,19 @@ n = size(xi, 1);
 Y = sphcoord(xi, eye(3));
 
 % Compute synthesis of evaluation points.
-[~, rho] = surfsynth(Ns, Y, cs1);
+[~, rho] = surfsynth(Ns, Y, cs2);
 
 % Evaluate basis functions.
 [bfc1, bfc2] = vbasiscomp(k, h, X, Y);
 
 % Compute coordinate basis at evaluation points.
-[d1, d2] = surftanbasis(Ns, cs1, xi);
+[d1, d2] = surftanbasis(Ns, cs2, xi);
 
 % Compute derivatives of coordinates basis at evaluation points.
-[d11, d12, ~, d22] = surftanbasisderiv(Ns, cs1, xi);
+[d11, d12, ~, d22] = surftanbasisderiv(Ns, cs2, xi);
 
 % Compute surface divergence of basis functions.
-sdiv = surfdiv(Ns, cs1, xi, k, h, X);
+sdiv = surfdiv(Ns, cs2, xi, k, h, X);
 
 % Compute sum of inner products with gradient of data and data times div.
 ip = sparse(bsxfun(@times, bfc1, dot(d1, gradf, 2)') + bsxfun(@times, bfc2, dot(d2, gradf, 2)') + bsxfun(@times, sdiv, f'));
@@ -77,19 +77,19 @@ ip = sparse(bsxfun(@times, bfc1, dot(d1, gradf, 2)') + bsxfun(@times, bfc2, dot(
 [bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderiv(k, h, X, Y);
 
 % Evaluate norm squared of surface gradient of rho.
-gradrhosquared = surfgradnormsquared(Ns, cs1, xi);
+gradrhosquared = surfgradnormsquared(Ns, cs2, xi);
 
 % Evaluate metric.
-[g{1,1}, g{1,2}, g{2,1}, g{2,2}] = surfmetric(Ns, cs1, rho, xi);
+[g{1,1}, g{1,2}, g{2,1}, g{2,2}] = surfmetric(Ns, cs2, rho, xi);
 
 % Compute determinant of metric.
 detg = g{1,1} .* g{2,2} - g{1,2} .* g{2,1};
 
 % Evaluate inverse of metric.
-[ginv{1,1}, ginv{1,2}, ginv{2,1}, ginv{2,2}] = surfinvmetric(Ns, cs1, rho, xi, detg);
+[ginv{1,1}, ginv{1,2}, ginv{2,1}, ginv{2,2}] = surfinvmetric(Ns, cs2, rho, xi, detg);
 
 % Compute Christoffel symbols with respect to space.
-[c{1,1,1}, c{1,1,2}, c{1,2,1}, c{1,2,2}, c{2,2,1}, c{2,2,2}] = surfchristoffel(Ns, cs1, rho, xi);
+[c{1,1,1}, c{1,1,2}, c{1,2,1}, c{1,2,2}, c{2,2,1}, c{2,2,2}] = surfchristoffel(Ns, cs2, rho, xi);
 c{2, 1, 1} = c{1, 2, 1};
 c{2, 1, 2} = c{1, 2, 2};
 
@@ -97,7 +97,7 @@ c{2, 1, 2} = c{1, 2, 2};
 intf = w .* rho .* sqrt(gradrhosquared + rho.^2);
 
 % Compute surface normals.
-N = surfnormals(Ns, cs1, xi);
+N = surfnormals(Ns, cs2, xi);
 
 % Compute scalar normal part of surface velocity.
 [~, dtrho] = surfsynth(Ns, Y, cs2 - cs1);
@@ -137,6 +137,9 @@ E = bfc1*spdiags(g{1, 1} .* intf .* (1 - s), 0, n, n)*(bfc1');
 E = E + bfc1*spdiags(g{1, 2} .* intf .* (1 - s), 0, n, n)*(bfc2');
 E = E + bfc2*spdiags(g{2, 1} .* intf .* (1 - s), 0, n, n)*(bfc1');
 E = E + bfc2*spdiags(g{2, 2} .* intf .* (1 - s), 0, n, n)*(bfc2');
+
+% Create divergence penalty matrix.
+G = sdiv*spdiags(intf .* (1 - s), 0, n, n)*sdiv';
 
 % Create right-hand side.
 b = -ip*spdiags(intf, 0, n, n)*(dtdf - ipvtan - f .* K .* V);

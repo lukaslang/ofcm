@@ -1,19 +1,19 @@
-% Copyright 2015 Lukas Lang
+% Copyright 2017 Lukas Lang
 %
-% This file is part of OFDM.
+% This file is part of OFCM.
 %
-%    OFDM is free software: you can redistribute it and/or modify
+%    OFCM is free software: you can redistribute it and/or modify
 %    it under the terms of the GNU General Public License as published by
 %    the Free Software Foundation, either version 3 of the License, or
 %    (at your option) any later version.
 %
-%    OFDM is distributed in the hope that it will be useful,
+%    OFCM is distributed in the hope that it will be useful,
 %    but WITHOUT ANY WARRANTY; without even the implied warranty of
 %    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %    GNU General Public License for more details.
 %
 %    You should have received a copy of the GNU General Public License
-%    along with OFDM.  If not, see <http://www.gnu.org/licenses/>.
+%    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 
 % This script executes all functionality of the software package.
 clear;
@@ -22,7 +22,7 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-path = fullfile(ofcm_datapath, 'LSM 16.03.2012');
+path = fullfile(datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 %frames = 139:141;
 frames = 112:115;
@@ -120,11 +120,7 @@ s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
 % Select frame.
 t = 1;
 
-% Compute coefficients for optical flow.
-%[ofc, L] = ofdm(Ns, cs{t}, X, k, h, xi, w, gradfx{t}, dtfx{t}, alpha);
-
 % Compute optimality conditions.
-%[~, A, D, E, b] = optcond(Ns, cs{t+1}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, ones(size(fx{t+1}, 1), 1));
 [~, A, D, E, b] = optcond(Ns, cs{t+1}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, fx{t+1});
 
 % Solve linear system.

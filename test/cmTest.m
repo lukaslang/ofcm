@@ -360,13 +360,14 @@ gradfx = squeeze(u(1, :, :));
 % Set regularisation parameter.
 alpha = 1;
 beta = 1;
+gamma = 1;
 
 % Compute coefficients for optical flow.
 % Compute optimality conditions.
-[~, A, D, E, b] = optcondcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1});
+[~, A, D, E, G, b] = optcondcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1});
 
 % Solve linear system.
-[cmc, ~] = solvesystem(A + alpha * D + beta * E, b, 1e-6, 1000);
+[cmc, ~] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, min(1000, size(A, 1)));
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(5);
