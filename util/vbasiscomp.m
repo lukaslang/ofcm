@@ -26,7 +26,7 @@ function [dy1, dy2] = vbasiscomp(k, h, x, y)
 %   x is a m-by-3 matrix where each row is a point on the 2-sphere.
 %   y is a n-by-3 matrix where each row is a point on the 2-sphere.
 %
-%   dy1, dy2 are vectors of length 2*n.
+%   dy1, dy2 is a matrix of size [2*m, n].
 m = size(x, 1);
 n = size(y, 1);
 

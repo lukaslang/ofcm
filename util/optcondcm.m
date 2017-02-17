@@ -72,22 +72,21 @@ Y = sphcoord(xi, eye(3));
 [~, rho] = surfsynth(Ns, Y, cs2);
 
 % Evaluate basis functions.
-[bfc1, bfc2] = vbasiscompmem(k, h, X, Y, mem1);
+[bfc{1}, bfc{2}] = vbasiscompmem(k, h, X, Y, mem1);
+
+% Evaluate partial derivatives of basis functions.
+[bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderivmem(k, h, X, Y, mem2);
+
+% Compute surface divergence of basis functions.
+sdiv = surfdiv(Ns, cs2, xi, bfc, bfcd);
 
 % Compute coordinate basis at evaluation points.
 [d1, d2] = surftanbasis(Ns, cs2, xi);
 
-% Compute derivatives of coordinates basis at evaluation points.
-[d11, d12, ~, d22] = surftanbasisderiv(Ns, cs2, xi);
-
-% Compute surface divergence of basis functions.
-sdiv = surfdivmem(Ns, cs2, xi, k, h, X, mem);
-
 % Compute sum of inner products with gradient of data and data times div.
-ip = sparse(bsxfun(@times, bfc1, dot(d1, gradf, 2)') + bsxfun(@times, bfc2, dot(d2, gradf, 2)') + bsxfun(@times, sdiv, f'));
-
-% Evaluate partial derivatives of basis functions.
-[bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderivmem(k, h, X, Y, mem2);
+ip = sparse(bsxfun(@times, bfc{1}, dot(d1, gradf, 2)') + bsxfun(@times, bfc{2}, dot(d2, gradf, 2)') + bsxfun(@times, sdiv, f'));
+clear d1;
+clear d2;
 
 % Evaluate norm squared of surface gradient of rho.
 gradrhosquared = surfgradnormsquared(Ns, cs2, xi);
@@ -97,14 +96,6 @@ gradrhosquared = surfgradnormsquared(Ns, cs2, xi);
 
 % Compute determinant of metric.
 detg = g{1,1} .* g{2,2} - g{1,2} .* g{2,1};
-
-% Evaluate inverse of metric.
-[ginv{1,1}, ginv{1,2}, ginv{2,1}, ginv{2,2}] = surfinvmetric(Ns, cs2, rho, xi, detg);
-
-% Compute Christoffel symbols with respect to space.
-[c{1,1,1}, c{1,1,2}, c{1,2,1}, c{1,2,2}, c{2,2,1}, c{2,2,2}] = surfchristoffel(Ns, cs2, rho, xi);
-c{2, 1, 1} = c{1, 2, 1};
-c{2, 1, 2} = c{1, 2, 2};
 
 % Compute scaling factor for manifold integration.
 intf = w .* rho .* sqrt(gradrhosquared + rho.^2);
@@ -119,19 +110,36 @@ V = dtrho .* dot(Y, N, 2);
 % Compute dot product of surface velocity with gradient of data.
 ipvtan = dot(bsxfun(@times, Y, dtrho), gradf, 2);
 
+% Compute derivatives of coordinates basis at evaluation points.
+[d11, d12, ~, d22] = surftanbasisderiv(Ns, cs2, xi);
+
 % Compute total curvature.
 K = (dot(d11, N, 2) .* g{2, 2} + dot(d22, N, 2) .* g{1, 1} - 2 * dot(d12, N, 2) .* g{1, 2}) ./ detg;
+clear d11;
+clear d12;
+clear d22;
+clear N;
 
 % Create linear system.
 A = ip*spdiags(intf, 0, n, n)*(ip');
+
+% Compute Christoffel symbols with respect to space.
+[c{1,1,1}, c{1,1,2}, c{1,2,1}, c{1,2,2}, c{2,2,1}, c{2,2,2}] = surfchristoffel(Ns, cs2, rho, xi);
+c{2, 1, 1} = c{1, 2, 1};
+c{2, 1, 2} = c{1, 2, 2};
 
 % Compute components D_i^j of covariant derivatives of basis functions.
 C = cell(2, 2);
 for i=1:2
     for k=1:2
-        C{i, k} = sparse(bfcd{k, i} + bsxfun(@times, bfc1, c{i, 1, k}') + bsxfun(@times, bfc2, c{i, 2, k}'));
+        C{i, k} = sparse(bfcd{k, i} + bsxfun(@times, bfc{1}, c{i, 1, k}') + bsxfun(@times, bfc{2}, c{i, 2, k}'));
     end
 end
+clear bfcd;
+clear c;
+
+% Evaluate inverse of metric.
+[ginv{1,1}, ginv{1,2}, ginv{2,1}, ginv{2,2}] = surfinvmetric(Ns, cs2, rho, xi, detg);
 
 % Compute regularisation matrix.
 D = sparse(dim, dim);
@@ -144,12 +152,13 @@ for i=1:2
         end
     end
 end
+clear ginv;
 
 % Create second regularisation matrix.
-E = bfc1*spdiags(g{1, 1} .* intf .* (1 - s), 0, n, n)*(bfc1');
-E = E + bfc1*spdiags(g{1, 2} .* intf .* (1 - s), 0, n, n)*(bfc2');
-E = E + bfc2*spdiags(g{2, 1} .* intf .* (1 - s), 0, n, n)*(bfc1');
-E = E + bfc2*spdiags(g{2, 2} .* intf .* (1 - s), 0, n, n)*(bfc2');
+E = bfc{1}*spdiags(g{1, 1} .* intf .* (1 - s), 0, n, n)*(bfc{1}');
+E = E + bfc{1}*spdiags(g{1, 2} .* intf .* (1 - s), 0, n, n)*(bfc{2}');
+E = E + bfc{2}*spdiags(g{2, 1} .* intf .* (1 - s), 0, n, n)*(bfc{1}');
+E = E + bfc{2}*spdiags(g{2, 2} .* intf .* (1 - s), 0, n, n)*(bfc{2}');
 
 % Create divergence penalty matrix.
 G = sdiv*spdiags(intf .* (1 - s), 0, n, n)*sdiv';

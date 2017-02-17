@@ -79,6 +79,8 @@ Y = sphcoord(xi, eye(3));
 
 % Compute inner products with gradient of data.
 ip = sparse(bsxfun(@times, bfc1, dot(d1, gradf, 2)') + bsxfun(@times, bfc2, dot(d2, gradf, 2)'));
+clear d1;
+clear d2;
 
 % Evaluate partial derivatives of basis functions.
 [bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderivmem(k, h, X, Y, mem2);

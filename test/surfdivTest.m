@@ -63,12 +63,18 @@ X = [0, 0, 1];
 % Set coefficients
 c = [0, 1]';
 
+% Evaluate basis functions.
+[bfc{1}, bfc{2}] = vbasiscomp(k, h, X, V);
+
+% Evaluate partial derivatives of basis functions.
+[bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderiv(k, h, X, V);
+
 % Compute divergence.
-v = surfdiv(Ns, cs, [el, az], k, h, X);
+v = surfdiv(Ns, cs, [el, az], bfc, bfcd);
 
 % Compute divergence.
 vm = surfdivmem(Ns, cs, [el, az], k, h, X, 8*size(X, 1));
-verifyEqual(testCase, v, vm, 'absTol', 1e-16);
+verifyEqual(testCase, v, vm, 'absTol', 1e-14);
 
 % Multiply with coefficients.
 v = (v') * c;
@@ -114,7 +120,7 @@ X = [0, 0, 1];
 c = [1, 0]';
 
 % Compute divergence.
-v = surfdiv(Ns, cs, [el, az], k, h, X);
+v = surfdivmem(Ns, cs, [el, az], k, h, X, 1024^3);
 
 % Multiply with coefficients.
 v = (v') * c;
