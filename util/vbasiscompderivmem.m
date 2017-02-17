@@ -40,10 +40,20 @@ assert(js >= 1);
 nj = ceil(n / js);
 
 % Compute dot products between all points.
-ip = x*(y');
-idx = find(ip > h);
-v = ip(idx);
-[row, col] = ind2sub([m, n], idx);
+ip = sparse(m, n);
+for p=1:nj
+	% Compute indices of junk.
+    idx = (p-1)*js+1:min(p*js, n);
+    % Compute dot product.
+    tmp = x * y(idx, :)';
+    % Find indices in support of basis functions.
+    [row, col] = find(tmp > h);
+    % Compute linear indices.
+    tmpidx = sub2ind([m, length(idx)], row, col);
+    % Store sparse matrix.
+    ip(:, idx) = sparse(row, col, tmp(tmpidx), m, length(idx));
+end
+[row, col, v] = find(ip);
 clear ip;
 
 % Find coordinates.
