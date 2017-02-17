@@ -40,8 +40,11 @@ function [cmc, L] = cm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, alpha)
 %   cmc is a vector of length m.
 %   L is a struct with info about linear system solve.
 
+% Set default memory 1GB.
+mem = 1024^3;
+
 % Compute optimality conditions.
-[~, A, D, ~, ~, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, ones(size(f, 1), 1));
+[~, A, D, ~, ~, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, ones(size(f, 1), 1), mem);
 
 % Solve linear system.
 [cmc, L] = solvesystem(A + alpha * D, b, 1e-6, min(1000, size(A, 1)));

@@ -14,7 +14,7 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
-function [dim, A, D, E, b] = optcond(Ns, cs, X, k, h, xi, w, gradf, dtdf, s)
+function [dim, A, D, E, b] = optcond(Ns, cs, X, k, h, xi, w, gradf, dtdf, s, mem)
 %SURFLINEARSYSTEM Computes the optimality conditions and returns a linear 
 %system used in optical flow on a sphere-like surface.
 %
@@ -24,6 +24,9 @@ function [dim, A, D, E, b] = optcond(Ns, cs, X, k, h, xi, w, gradf, dtdf, s)
 %   rule [xi, w], and  gradient gradf of data, temporal derivative dtdf, 
 %   and a segmentation s, and returns the linear system representing the 
 %   optimality conditions.
+%
+%   [dim, A, D, E, b] = OPTCOND(Ns, cs, X, k, h, xi, w, gradf, dtdf, s, mem)
+%   uses mem > 0 bytes for matrix multiplication.
 %
 %   Ns is a vector of consecutive non-negative integers.
 %   cs is a vector of Fourier coefficients (according to degrees Ns).
@@ -52,6 +55,16 @@ dim = 2*size(X, 1);
 % Number of evaluation points.
 n = size(xi, 1);
 
+% Check for memory option.
+if(nargin == 11)
+    assert(mem > 0);
+    mem1 = mem;
+    mem2 = mem;
+else
+    mem1 = 8*n*dim/2;
+    mem2 = 3*8*n*dim/2;
+end
+
 % Compute evaluation points.
 Y = sphcoord(xi, eye(3));
 
@@ -59,7 +72,7 @@ Y = sphcoord(xi, eye(3));
 [~, rho] = surfsynth(Ns, Y, cs);
 
 % Evaluate basis functions.
-[bfc1, bfc2] = vbasiscomp(k, h, X, Y);
+[bfc1, bfc2] = vbasiscompmem(k, h, X, Y, mem1);
 
 % Compute coordinate basis at evaluation points.
 [d1, d2] = surftanbasis(Ns, cs, xi);
@@ -68,7 +81,7 @@ Y = sphcoord(xi, eye(3));
 ip = sparse(bsxfun(@times, bfc1, dot(d1, gradf, 2)') + bsxfun(@times, bfc2, dot(d2, gradf, 2)'));
 
 % Evaluate partial derivatives of basis functions.
-[bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderiv(k, h, X, Y);
+[bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderivmem(k, h, X, Y, mem2);
 
 % Evaluate norm squared of surface gradient of rho.
 gradrhosquared = surfgradnormsquared(Ns, cs, xi);

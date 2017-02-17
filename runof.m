@@ -31,6 +31,9 @@ frames = 112:115;
 % Load colormap.
 load(fullfile('data', 'cmapblue.mat'));
 
+% Specify max. memory for matrix multiplication.
+mem = 3*1024^3;
+
 % Define Gaussian filter.
 sigma = 1.5;
 hsize = 30;
@@ -121,7 +124,7 @@ s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
 t = 1;
 
 % Compute optimality conditions.
-[~, A, D, E, b] = optcond(Ns, cs{t+1}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, fx{t+1});
+[~, A, D, E, b] = optcond(Ns, cs{t+1}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, fx{t+1}, mem);
 
 % Solve linear system.
 [ofc, L] = solvesystem(A + alpha * D + beta * E, b, 1e-6, 2000);
@@ -140,7 +143,7 @@ IC = normalise(TR.incenters);
 [ICS, ~] = cellfun(@(c) surfsynth(Ns, IC, c), cs, 'UniformOutput', false);
 
 % Evaluate basis functions at vertices.
-[bfc1, bfc2] = vbasiscomp(k, h, X, IC);
+[bfc1, bfc2] = vbasiscompmem(k, h, X, IC, mem);
 
 % Compute coordinates of evaluation points.
 [az, el, ~] = cart2sph(IC(:, 1), IC(:, 2), IC(:, 3));
@@ -233,7 +236,7 @@ daspect([1, 1, 1]);
 view(3);
 
 % Compute divergence.
-sdiv = surfdiv(Ns, cs{t+1}, [el, az], k, h, X)'*ofc;
+sdiv = surfdivmem(Ns, cs{t+1}, [el, az], k, h, X, mem)'*ofc;
 figure;
 hold on;
 trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', sdiv, 'EdgeColor', 'none');

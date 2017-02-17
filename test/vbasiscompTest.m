@@ -44,9 +44,21 @@ Y = sphcoord(xi, eye(3));
 m = size(X, 1);
 
 % Create basis functions.
+tic;
 [dy1, dy2] = vbasiscomp(k, h, X, Y);
+toc;
 verifyEqual(testCase, size(dy1), [2*m, n]);
 verifyEqual(testCase, size(dy2), [2*m, n]);
+
+% Create basis functions.
+tic;
+[dy1m, dy2m] = vbasiscompmem(k, h, X, Y, 128*8*m);
+toc;
+verifyEqual(testCase, size(dy1), [2*m, n]);
+verifyEqual(testCase, size(dy2), [2*m, n]);
+
+verifyEqual(testCase, dy1m, dy1, 'absTol', 1e-13);
+verifyEqual(testCase, dy2m, dy2, 'absTol', 1e-13);
 
 end
 

@@ -41,11 +41,26 @@ m = size(x, 1);
 n = size(y, 1);
 
 % Create basis functions.
+tic;
 [dy1d1, dy1d2, dy2d1, dy2d2] = vbasiscompderiv(k, h, x, y);
+toc;
 verifyEqual(testCase, size(dy1d1), [2*m, n]);
 verifyEqual(testCase, size(dy1d2), [2*m, n]);
 verifyEqual(testCase, size(dy2d1), [2*m, n]);
 verifyEqual(testCase, size(dy2d2), [2*m, n]);
+
+tic;
+[dy1d1m, dy1d2m, dy2d1m, dy2d2m] = vbasiscompderivmem(k, h, x, y, 256*3*8*m);
+toc;
+verifyEqual(testCase, size(dy1d1m), [2*m, n]);
+verifyEqual(testCase, size(dy1d2m), [2*m, n]);
+verifyEqual(testCase, size(dy2d1m), [2*m, n]);
+verifyEqual(testCase, size(dy2d2m), [2*m, n]);
+
+verifyEqual(testCase, dy1d1, dy1d1m, 'absTol', 1e-16);
+verifyEqual(testCase, dy1d2, dy1d2m, 'absTol', 1e-16);
+verifyEqual(testCase, dy2d1, dy2d1m, 'absTol', 1e-16);
+verifyEqual(testCase, dy2d2, dy2d2m, 'absTol', 1e-16);
 
 end
 

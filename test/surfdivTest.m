@@ -66,6 +66,10 @@ c = [0, 1]';
 % Compute divergence.
 v = surfdiv(Ns, cs, [el, az], k, h, X);
 
+% Compute divergence.
+vm = surfdivmem(Ns, cs, [el, az], k, h, X, 8*size(X, 1));
+verifyEqual(testCase, v, vm, 'absTol', 1e-16);
+
 % Multiply with coefficients.
 v = (v') * c;
 verifyEqual(testCase, size(v), [n, 1]);

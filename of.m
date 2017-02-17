@@ -38,8 +38,11 @@ function [ofc, L] = of(Ns, cs, X, k, h, xi, w, gradf, dtdf, alpha)
 %   ofc is a vector of length m.
 %   L is a struct with info about linear system solve.
 
+% Set default memory 1GB.
+mem = 1024^3;
+
 % Compute optimality conditions.
-[~, A, D, ~, b] = optcond(Ns, cs, X, k, h, xi, w, gradf, dtdf, ones(size(dtdf, 1), 1));
+[~, A, D, ~, b] = optcond(Ns, cs, X, k, h, xi, w, gradf, dtdf, ones(size(dtdf, 1), 1), mem);
 
 % Solve linear system.
 [ofc, L] = solvesystem(A + alpha * D, b, 1e-6, min(1000, size(A, 1)));

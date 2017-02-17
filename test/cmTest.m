@@ -364,7 +364,7 @@ gamma = 1;
 
 % Compute coefficients for optical flow.
 % Compute optimality conditions.
-[~, A, D, E, G, b] = optcondcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1});
+[~, A, D, E, G, b] = optcondcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
 
 % Solve linear system.
 [cmc, ~] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, min(1000, size(A, 1)));
