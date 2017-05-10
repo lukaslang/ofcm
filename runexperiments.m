@@ -32,7 +32,7 @@ frames = 112:115;
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 
 % Define and create output folder.
-outputPath = fullfile('results', startdate);
+outputPath = fullfile('results', startdate, name);
 mkdir(outputPath);
 
 % Load colormap.
@@ -126,7 +126,7 @@ N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
 gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation.
-s = cellfun(@(x) double(imbinarize(x)), fx, 'UniformOutput', false);
+s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
 s = fx;
 
 % Run through all pair of frames.
@@ -138,7 +138,7 @@ for t=1:length(frames)-1
 
     % Solve linear system.
     [ofc{t}, L{t}] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, 2000);
-    fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L.iter(2), L.relres);
+    fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
 
 end
 
@@ -150,7 +150,7 @@ end
 fd = evaldata(f, scale, S, sc, bandwidth, layers);
 
 % Create segmentation.
-sfd = cellfun(@(x) double(imbinarize(x)), fd, 'UniformOutput', false);
+sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
 sfd = fd;
 
 % Find midpoints of faces on sphere.
@@ -170,11 +170,12 @@ el = pi/2 - el;
 
 % Run through all pairs of frames.
 for t=1:length(frames)-1
-
+    
     % Compute pushforward of basis functions.
     v = bsxfun(@times, full((bfc1')*ofc{t}), d1{t}) + bsxfun(@times, full((bfc2')*ofc{t}), d2{t});
 
     figure(1);
+    cla;
     hold on;
     colorbar;
     colormap(cmap);
@@ -185,6 +186,7 @@ for t=1:length(frames)-1
     title('Velocity field and surface data', 'FontName', 'Helvetica', 'FontSize', 14);
 
     figure(2);
+    cla;
     hold on;
     colorbar;
     colormap(cmap);
@@ -194,6 +196,7 @@ for t=1:length(frames)-1
     title('Segmentation', 'FontName', 'Helvetica', 'FontSize', 14);
 
     figure(3);
+    cla;
     hold on;
     colorbar;
     colormap(cmap);
@@ -203,6 +206,7 @@ for t=1:length(frames)-1
     title('First frame.', 'FontName', 'Helvetica', 'FontSize', 14);
 
     figure(4);
+    cla;
     hold on;
     colorbar;
     colormap(cmap);
@@ -222,24 +226,26 @@ for t=1:length(frames)-1
 
     % Visualize flow.
     figure(5);
+    cla;
     hold on;
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', col, 'EdgeColor', 'none');
     daspect([1, 1, 1]);
-    view(3);
+    view(2);
     title('Colour-coded velocity.', 'FontName', 'Helvetica', 'FontSize', 14);
 
     % Plot colourwheel.
     figure(6);
+    cla;
     cw = colourWheel;
     surf(1:200, 1:200, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
     daspect([1, 1, 1]);
     view(2);
     title('Colour disk.', 'FontName', 'Helvetica', 'FontSize', 14);
 
-    export_fig(1, fullfile(outputPath, name, sprintf('%s-frame-%.3i-vel.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(2, fullfile(outputPath, name, sprintf('%s-frame-%.3i-seg.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(3, fullfile(outputPath, name, sprintf('%s-frame-%.3i-img1.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(4, fullfile(outputPath, name, sprintf('%s-frame-%.3i-img2.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(5, fullfile(outputPath, name, sprintf('%s-frame-%.3i-col.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-
+    % Save figures.
+    export_fig(1, fullfile(outputPath, sprintf('%s-frame-%.3i-vel.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(2, fullfile(outputPath, sprintf('%s-frame-%.3i-seg.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(3, fullfile(outputPath, sprintf('%s-frame-%.3i-img1.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(4, fullfile(outputPath, sprintf('%s-frame-%.3i-img2.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(5, fullfile(outputPath, sprintf('%s-frame-%.3i-col.png', name, t)), '-png', '-q300', '-a1', '-transparent');
 end
