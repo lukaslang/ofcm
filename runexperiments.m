@@ -26,7 +26,8 @@ path = fullfile(datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
-frames = 112:115;
+%frames = 112:115;
+frames = 110:130;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -137,8 +138,10 @@ for t=1:length(frames)-1
     [~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, s{t}, mem);
 
     % Solve linear system.
+    tic;
     [ofc{t}, L{t}] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, 2000);
     fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
+    toc;
 
 end
 
