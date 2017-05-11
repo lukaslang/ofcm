@@ -26,8 +26,8 @@ path = fullfile(datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
-%frames = 112:115;
-frames = 110:120;
+frames = 112:115;
+%frames = 110:120;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -35,9 +35,6 @@ startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 % Define and create output folder.
 outputPath = fullfile('results', startdate);
 mkdir(outputPath);
-
-% Load colormap.
-load(fullfile('data', 'cmapblue.mat'));
 
 % Specify max. memory for matrix multiplication.
 mem = 3*1024^3;
@@ -47,7 +44,7 @@ sigma = 1.5;
 hsize = 30;
 
 % Define thresholding filter.
-t = 80;
+threshold = 80;
 area = 100;
 
 % Define surface fitting parameters.
@@ -88,7 +85,7 @@ scale = scale * 1e6;
 f = cellfun(@(X) flip(X, 3), f, 'UniformOutput', false);
 
 % Find approximate cell centers.
-CC = cellcenters(f, sigma, hsize, t, area);
+CC = cellcenters(f, sigma, hsize, threshold, area);
 
 % Scale local maxima.
 C = cellfun(@(X) bsxfun(@times, X, scale), CC, 'UniformOutput', false);
@@ -127,16 +124,16 @@ N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
 gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation.
-s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
-s = fx;
-s = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
+seg = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
+seg = fx;
+seg = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
 
 % Run through all pair of frames.
 for t=1:length(frames)-1
     fprintf('Computing velocity field %i/%i.\n', t, length(frames)-1);
     
     % Compute optimality conditions.
-    [~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, s{t}, mem);
+    [~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
 
     % Solve linear system.
     tic;
@@ -147,4 +144,4 @@ for t=1:length(frames)-1
 end
 
 % Save experiment.
-save(fullfile(outputPath, sprintf('%s.mat', name)));
+save(fullfile(outputPath, sprintf('%s.mat', name)), name, file, outputPath, Ns, cs, f, scale, sc, bandwidth, layers, k, h, X, mem, ofc, L, alpha, beta, gamma, beta0, beta1, s, dt, ref, deg, sigma, hsize, threshold, '-v7.3');

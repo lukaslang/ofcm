@@ -28,6 +28,9 @@ file = fullfile(path, strcat(name, '.mat'));
 % Load experiment.
 load(file);
 
+% Load colormap.
+load(fullfile('data', 'cmapblue.mat'));
+
 % Create triangulation for visualisation purpose.
 [F, V] = halfsphTriang(7);
 [S, ~] = cellfun(@(c) surfsynth(Ns, V, c), cs, 'UniformOutput', false);
