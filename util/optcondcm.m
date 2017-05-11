@@ -69,7 +69,7 @@ end
 Y = sphcoord(xi, eye(3));
 
 % Compute synthesis of evaluation points.
-[~, rho] = surfsynth(Ns, Y, cs2);
+[~, rho] = surfsynth(Ns, Y, cs1);
 
 % Evaluate basis functions.
 [bfc{1}, bfc{2}] = vbasiscompmem(k, h, X, Y, mem1);
@@ -78,10 +78,10 @@ Y = sphcoord(xi, eye(3));
 [bfcd{1, 1}, bfcd{1, 2}, bfcd{2, 1}, bfcd{2, 2}] = vbasiscompderivmem(k, h, X, Y, mem2);
 
 % Compute surface divergence of basis functions.
-sdiv = surfdiv(Ns, cs2, xi, bfc, bfcd);
+sdiv = surfdiv(Ns, cs1, xi, bfc, bfcd);
 
 % Compute coordinate basis at evaluation points.
-[d1, d2] = surftanbasis(Ns, cs2, xi);
+[d1, d2] = surftanbasis(Ns, cs1, xi);
 
 % Compute sum of inner products with gradient of data and data times div.
 ip = sparse(bsxfun(@times, bfc{1}, dot(d1, gradf, 2)') + bsxfun(@times, bfc{2}, dot(d2, gradf, 2)') + bsxfun(@times, sdiv, f'));
@@ -89,10 +89,10 @@ clear d1;
 clear d2;
 
 % Evaluate norm squared of surface gradient of rho.
-gradrhosquared = surfgradnormsquared(Ns, cs2, xi);
+gradrhosquared = surfgradnormsquared(Ns, cs1, xi);
 
 % Evaluate metric.
-[g{1,1}, g{1,2}, g{2,1}, g{2,2}] = surfmetric(Ns, cs2, rho, xi);
+[g{1,1}, g{1,2}, g{2,1}, g{2,2}] = surfmetric(Ns, cs1, rho, xi);
 
 % Compute determinant of metric.
 detg = g{1,1} .* g{2,2} - g{1,2} .* g{2,1};
@@ -101,7 +101,7 @@ detg = g{1,1} .* g{2,2} - g{1,2} .* g{2,1};
 intf = w .* rho .* sqrt(gradrhosquared + rho.^2);
 
 % Compute surface normals.
-N = surfnormals(Ns, cs2, xi);
+N = surfnormals(Ns, cs1, xi);
 
 % Compute scalar normal part of surface velocity.
 [~, dtrho] = surfsynth(Ns, Y, cs2 - cs1);
@@ -111,7 +111,7 @@ V = dtrho .* dot(Y, N, 2);
 ipvtan = dot(bsxfun(@times, Y, dtrho), gradf, 2);
 
 % Compute derivatives of coordinates basis at evaluation points.
-[d11, d12, ~, d22] = surftanbasisderiv(Ns, cs2, xi);
+[d11, d12, ~, d22] = surftanbasisderiv(Ns, cs1, xi);
 
 % Compute total curvature.
 K = (dot(d11, N, 2) .* g{2, 2} + dot(d22, N, 2) .* g{1, 1} - 2 * dot(d12, N, 2) .* g{1, 2}) ./ detg;
@@ -124,7 +124,7 @@ clear N;
 A = ip*spdiags(intf, 0, n, n)*(ip');
 
 % Compute Christoffel symbols with respect to space.
-[c{1,1,1}, c{1,1,2}, c{1,2,1}, c{1,2,2}, c{2,2,1}, c{2,2,2}] = surfchristoffel(Ns, cs2, rho, xi);
+[c{1,1,1}, c{1,1,2}, c{1,2,1}, c{1,2,2}, c{2,2,1}, c{2,2,2}] = surfchristoffel(Ns, cs1, rho, xi);
 c{2, 1, 1} = c{1, 2, 1};
 c{2, 1, 2} = c{1, 2, 2};
 
@@ -139,7 +139,7 @@ clear bfcd;
 clear c;
 
 % Evaluate inverse of metric.
-[ginv{1,1}, ginv{1,2}, ginv{2,1}, ginv{2,2}] = surfinvmetric(Ns, cs2, rho, xi, detg);
+[ginv{1,1}, ginv{1,2}, ginv{2,1}, ginv{2,2}] = surfinvmetric(Ns, cs1, rho, xi, detg);
 
 % Compute regularisation matrix.
 D = sparse(dim, dim);
