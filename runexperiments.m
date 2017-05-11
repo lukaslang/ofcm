@@ -27,7 +27,7 @@ file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
 %frames = 112:115;
-frames = 110:130;
+frames = 110:120;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -71,7 +71,7 @@ k = 3;
 h = 0.95;
 
 % Define degree of integration.
-deg = 400;
+deg = 600;
 
 % Set regularisation parameter.
 alpha = 0.01;
