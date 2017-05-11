@@ -22,7 +22,7 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-path = fullfile('results', '2017-05-10-17-53-59');
+path = fullfile('results', '2017-05-10-21-00-48');
 file = fullfile(path, strcat(name, '.mat'));
 
 % Load experiment.
@@ -38,6 +38,7 @@ fd = evaldata(f, scale, S, sc, bandwidth, layers);
 % Create segmentation.
 sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
 sfd = fd;
+sfd = cellfun(@(x) ones(size(x, 1), 1), fd, 'UniformOutput', false);
 
 % Find midpoints of faces on sphere.
 TR = TriRep(F, V);
@@ -129,9 +130,10 @@ for t=1:length(frames)-1
     title('Colour disk.', 'FontName', 'Helvetica', 'FontSize', 14);
 
     % Save figures.
-    export_fig(1, fullfile(outputPath, name, sprintf('%s-frame-%.3i-vel.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(2, fullfile(outputPath, name, sprintf('%s-frame-%.3i-seg.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(3, fullfile(outputPath, name, sprintf('%s-frame-%.3i-img1.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(4, fullfile(outputPath, name, sprintf('%s-frame-%.3i-img2.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-    export_fig(5, fullfile(outputPath, name, sprintf('%s-frame-%.3i-col.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    mkdir(fullfile(outputPath, name));
+    export_fig(1, fullfile(outputPath, name, sprintf('%s-vel-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(2, fullfile(outputPath, name, sprintf('%s-seg-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(3, fullfile(outputPath, name, sprintf('%s-img1-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(4, fullfile(outputPath, name, sprintf('%s-img2-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(5, fullfile(outputPath, name, sprintf('%s-col-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
 end
