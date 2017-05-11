@@ -130,7 +130,7 @@ seg = fx;
 %seg = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
 
 % Save data and parameters.
-save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'k', 'h', 'X', 'mem', 'ofc', 'L', 'alpha', 'beta', 'gamma', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', '-v7.3');
+save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'seg', '-v7.3');
 
 % Initialise cell arrays for optical flow.
 A = cell(length(frames)-1, 1);
