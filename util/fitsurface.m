@@ -78,7 +78,7 @@ if(nframes > 1)
 end
 
 % Solve linear system.
-c = gmres(A + D + B, b, [], 1e-6, min(1000, size(A, 1)));
+c = gmres(A + D + B, b, [], 1e-6, min(2000, size(A, 1)));
 c = mat2cell(c, repmat(dim, nframes, 1));
 
 end

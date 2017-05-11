@@ -32,8 +32,8 @@ path = fullfile(datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
-frames = 112:115;
-%frames = 110:120;
+%frames = 112:115;
+frames = 110:130;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -43,7 +43,7 @@ outputPath = fullfile('results', name);
 mkdir(outputPath);
 
 % Specify max. memory for matrix multiplication.
-mem = 5*1024^3;
+mem = 15*1024^3;
 
 % Define Gaussian filter.
 sigma = 1.5;
@@ -74,7 +74,7 @@ k = 3;
 h = 0.95;
 
 % Define degree of integration.
-deg = 600;
+deg = 400;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
