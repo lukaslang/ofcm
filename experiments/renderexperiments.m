@@ -39,9 +39,9 @@ load(fullfile('data', 'cmapblue.mat'));
 fd = evaldata(f, scale, S, sc, bandwidth, layers);
 
 % Create segmentation.
-sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
+%sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
 sfd = fd;
-sfd = cellfun(@(x) ones(size(x, 1), 1), fd, 'UniformOutput', false);
+%sfd = cellfun(@(x) ones(size(x, 1), 1), fd, 'UniformOutput', false);
 
 % Find midpoints of faces on sphere.
 TR = TriRep(F, V);

@@ -124,19 +124,19 @@ N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
 gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation.
-seg = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
+%seg = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
 seg = fx;
-seg = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
+%seg = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
 
 % Run through all pair of frames.
 for t=1:length(frames)-1
     fprintf('Computing velocity field %i/%i.\n', t, length(frames)-1);
     
+    tic;
     % Compute optimality conditions.
     [~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
 
     % Solve linear system.
-    tic;
     [ofc{t}, L{t}] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, 2000);
     fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
     toc;
@@ -144,4 +144,4 @@ for t=1:length(frames)-1
 end
 
 % Save experiment.
-save(fullfile(outputPath, sprintf('%s.mat', name)), name, file, outputPath, Ns, cs, f, scale, sc, bandwidth, layers, k, h, X, mem, ofc, L, alpha, beta, gamma, beta0, beta1, s, dt, ref, deg, sigma, hsize, threshold, '-v7.3');
+save(fullfile(outputPath, sprintf('%s.mat', name)), 'name', 'file', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'k', 'h', 'X', 'mem', 'ofc', 'L', 'alpha', 'beta', 'gamma', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', '-v7.3');

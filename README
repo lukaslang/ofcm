@@ -7,25 +7,26 @@ Radon Institute of Computational and Applied Mathematics, Linz, Austria. http://
 
 This is a Matlab implementation as described in:
 
-L. F. Lang. Brightness and Mass Conservation on Evolving Sphere-Like Surfaces, working draft, 2016.
+L. F. Lang. Brightness and Mass Conservation Laws on Evolving Sphere-Like Surfaces, working draft, 2017.
 
 If you use this software in your work you must cite the abovementioned paper in any resulting publication!
 
 BibTeX:
 
-@techreport{Lan16_report,
+@techreport{Lan17_report,
   author     = {Lang, L.~F.},
-  title      = {Brightness and Mass Conservation on Evolving Sphere-Like Surfaces},
-  institution= {RICAM, Austria},
+  title      = {Brightness and Mass Conservation Laws on Evolving Sphere-Like Surfaces},
+  institution= {DAMTP, University of Cambridge, United Kingdom},
   type       = {Working draft},
-  year       = {2016}
+  year       = {2017}
 }
 
 This software package requires parts of
 
 L. F. Lang and O. Scherzer. Optical Flow on Evolving Sphere-Like Surfaces,
-Inverse Probl. Imaging, 2017.
+Inverse Probl. Imaging, 11(2):305?338, 2017.
 
+Available at https://dx.doi.org/10.3934/ipi.2017015
 Preprint available at https://arxiv.org/abs/1506.03358
 
 which requires parts of
@@ -33,7 +34,7 @@ which requires parts of
 C. Kirisits, L. F. Lang and O. Scherzer. Decomposition of optical flow on 
 the sphere, GEM. Int. J. Geomath., 5(1):117-141, April, 2014
 
-Available at http://dx.doi.org/10.1007/s13137-013-0055-8
+Available at https://dx.doi.org/10.1007/s13137-013-0055-8
 Preprint available at https://arxiv.org/abs/1312.4354
 
 2. License & Disclaimer
@@ -59,8 +60,8 @@ Moreover, this work incorporates source code from the color wheel by
 Deqing Sun, Department of Computer Science, Brown University. The license 
 statement can be found in the respective files.
 
-Furthermore, this work includes source code of imgaussian and lgwt. The 
-license statement can be found in the respective folders.
+Furthermore, this work includes source code of imgaussian, lgwt, and vol3d.
+The license statement can be found in the respective folders.
 
 tiffread.m is licensed under GNU GPL v3.
 
@@ -71,6 +72,7 @@ This software was originally written for and tested with Matlab R2015a.
 The following libraries are required for parts of this sofware:
 
 export_fig: used for producing high quality figures from the results.
+GitHub: https://github.com/altmany/export_fig
 URL: http://www.mathworks.com/matlabcentral/fileexchange/23629-exportfig
 
 The following libraries are already included in the folder 'external':
@@ -83,6 +85,9 @@ URL: http://www.cytosim.org/misc/index.html
 
 lgwt: used for computing Legendre-Gauss quadrature weights and nodes.
 URL: https://de.mathworks.com/matlabcentral/fileexchange/4540-legendre-gauss-quadrature-weights-and-nodes
+
+vol3dv2: used for plotting of volumetric microscopy data.
+https://de.mathworks.com/matlabcentral/fileexchange/22940-vol3d-v2
 
 Moreover, it requires the code of OFD (Decomposition of Optical Flow on the Sphere).
 Download/check it out from https://bitbucket.org/lukaslang/ofd
