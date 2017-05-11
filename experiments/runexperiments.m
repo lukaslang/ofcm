@@ -68,12 +68,12 @@ k = 3;
 h = 0.95;
 
 % Define degree of integration.
-deg = 600;
+deg = 400;
 
 % Set regularisation parameter.
 alpha = 0.01;
-beta = 0.001;
-gamma = 0.1;
+beta = 0.1;
+gamma = 0.01;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
