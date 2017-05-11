@@ -132,43 +132,25 @@ seg = fx;
 % Save data and parameters.
 save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'seg', '-v7.3');
 
-% Initialise cell arrays for optical flow.
-A = cell(length(frames)-1, 1);
-D = cell(length(frames)-1, 1);
-E = cell(length(frames)-1, 1);
-b = cell(length(frames)-1, 1);
-
-% Run through all pair of frames.
-for t=1:length(frames)-1
-    fprintf('Computing optimality conditions for OF %i/%i.\n', t, length(frames)-1);
-    
-    % Compute optimality conditions.
-    timerVal = tic;
-    [~, A{t}, D{t}, E{t}, b{t}] = optcond(Ns, cs{t}, X, k, h, xi, w, gradfx{t}, dtfx{t}, seg{t}, mem);
-    elapsed = toc(timerVal);
-    fprintf('Elapsed time is %.6f seconds.\n', elapsed);
-end
-
-% Save linear systems.
-save(fullfile(outputPath, sprintf('%s-linsys-of.mat', startdate)), 'A', 'D', 'E', 'b', '-v7.3');
-
-% Initialise cell arrays for mass conservation.
-A = cell(length(frames)-1, 1);
+% Initialise cell arrays.
+Aof = cell(length(frames)-1, 1);
+Acm = cell(length(frames)-1, 1);
 D = cell(length(frames)-1, 1);
 E = cell(length(frames)-1, 1);
 G = cell(length(frames)-1, 1);
-b = cell(length(frames)-1, 1);
+bof = cell(length(frames)-1, 1);
+bcm = cell(length(frames)-1, 1);
 
 % Run through all pair of frames.
 for t=1:length(frames)-1
-    fprintf('Computing optimality conditions for CM %i/%i.\n', t, length(frames)-1);
+    fprintf('Computing optimality conditions %i/%i.\n', t, length(frames)-1);
     
     % Compute optimality conditions.
     timerVal = tic;
-    [~, A{t}, D{t}, E{t}, G{t}, b{t}] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
+    [~, Aof{t}, Acm{t}, D{t}, E{t}, G{t}, bof{t}, bcm{t}] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
     elapsed = toc(timerVal);
     fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 end
 
 % Save linear systems.
-save(fullfile(outputPath, sprintf('%s-linsys-cm.mat', startdate)), 'A', 'D', 'E', 'G', 'b', '-v7.3');
+save(fullfile(outputPath, sprintf('%s-linsys.mat', startdate)), 'Aof', 'Acm', 'D', 'E', 'G', 'bof', 'bcm', '-v7.3');

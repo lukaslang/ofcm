@@ -48,27 +48,27 @@ startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 tolSolver = 1e-6;
 iterSolver = 2000;
 
-%% Run experiments for optical flow.
+% Load linear systems.
+load(fullfile(path, sprintf('%s-linsys.mat', timestamp)));
 
-% Load linear systems for optical flow.
-load(fullfile(path, sprintf('%s-linsys-of.mat', timestamp)));
+%% Run experiments for optical flow.
 
 % Set regularisation parameters.
 alpha = {0.001, 0.01, 0.1, 1};
 beta = {0.001, 0.001, 0.001, 0.001};
 
 % Initialise arrays.
-c = cell(size(A, 1), length(alpha));
-L = cell(size(A, 1), length(alpha));
+c = cell(size(Aof, 1), length(alpha));
+L = cell(size(Aof, 1), length(alpha));
 
 % Run through all pair of frames.
-for t=1:size(A, 1)
-    fprintf('Solving linear system for OF %i/%i.\n', t, size(A, 1));
+for t=1:size(Aof, 1)
+    fprintf('Solving linear system for OF %i/%i.\n', t, size(Aof, 1));
     
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{t, p}, L{t, p}] = solvesystem(A{t} + alpha{p} * D{t} + beta{p} * E{t}, b{t}, tolSolver, iterSolver);
+        [c{t, p}, L{t, p}] = solvesystem(Aof{t} + alpha{p} * D{t} + beta{p} * E{t}, bof{t}, tolSolver, iterSolver);
         fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
         elapsed = toc(timerVal);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
@@ -80,26 +80,23 @@ save(fullfile(path, timestamp, sprintf('%s-coeff-of.mat', startdate)), 'c', 'L',
 
 %% Run experiments for mass conservation.
 
-% Load linear systems for optical flow.
-load(fullfile(path, sprintf('%s-linsys-cm.mat', timestamp)));
-
 % Set regularisation parameters.
 alpha = {0.001, 0.01, 0.1, 1};
 beta = {0.001, 0.001, 0.001, 0.001};
 gamma = {0.1, 0.1, 0.1, 0.1};
 
 % Initialise arrays.
-c = cell(size(A, 1), length(alpha));
-L = cell(size(A, 1), length(alpha));
+c = cell(size(Acm, 1), length(alpha));
+L = cell(size(Acm, 1), length(alpha));
 
 % Run through all pair of frames.
-for t=1:size(A, 1)
-    fprintf('Solving linear system for CM %i/%i.\n', t, size(A, 1));
+for t=1:size(Acm, 1)
+    fprintf('Solving linear system for CM %i/%i.\n', t, size(Acm, 1));
     
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{t, p}, L{t, p}] = solvesystem(A{t} + alpha{p} * D{t} + beta{p} * E{t} + gamma{p} * G{t}, b{t}, tolSolver, iterSolver);
+        [c{t, p}, L{t, p}] = solvesystem(Acm{t} + alpha{p} * D{t} + beta{p} * E{t} + gamma{p} * G{t}, bcm{t}, tolSolver, iterSolver);
         fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
         elapsed = toc(timerVal);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
