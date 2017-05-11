@@ -15,133 +15,96 @@
 %    You should have received a copy of the GNU General Public License
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 
-% This script executes all functionality of the software package.
+% This script loads optimality conditions, computes coefficients by solving
+% the linear systems, and outputs two files:
+%
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]/[yyyy-mm-dd-HH-MM-SS]-coeff-of.mat
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]/[yyyy-mm-dd-HH-MM-SS]-coeff-cm.mat
+%
+% where the first datestring is from the files prepareexperiments.m:
+%
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-of.mat
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-cm.mat
+%
+% and the second datestring is generated.
 clear;
 close all;
 clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-path = fullfile(datapath, 'LSM 16.03.2012');
-file = fullfile(path, strcat(name, '.lsm'));
+datestr = '2017-05-10-21-00-48';
 
-% Select frames.
-frames = 112:115;
-%frames = 110:120;
+% Define folder.
+path = fullfile('results', name);
+
+% Create output folder.
+mkdir(fullfile(path, datestr));
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 
-% Define and create output folder.
-outputPath = fullfile('results', startdate);
-mkdir(outputPath);
+% Set solver parameters.
+tolSolver = 1e-6;
+iterSolver = 2000;
 
-% Specify max. memory for matrix multiplication.
-mem = 3*1024^3;
+%% Run experiments for optical flow.
 
-% Define Gaussian filter.
-sigma = 1.5;
-hsize = 30;
+% Load linear systems for optical flow.
+load(fullfile(path, sprintf('%s-linsys-of.mat', datestr)));
 
-% Define thresholding filter.
-threshold = 80;
-area = 100;
+% Set regularisation parameters.
+alpha = {0.01, 0.1};
+beta = {0.001, 0.001};
 
-% Define surface fitting parameters.
-Ns = 0:10;
-beta0 = 1e-4;
-beta1 = 1;
-s = 3+eps;
-
-% Set temporal derivative.
-dt = 1;
-
-% Parameters for radial projection of the data.
-bandwidth = [0.8, 1.2];
-layers = 80;
-
-% Set subdivision parameter (number of basis functions is approx. 10*4^n).
-ref = 5;
-
-% Set parameters for basis function.
-k = 3;
-h = 0.95;
-
-% Define degree of integration.
-deg = 400;
-
-% Set regularisation parameter.
-alpha = 0.01;
-beta = 0.1;
-gamma = 0.01;
-
-% Read dataset.
-[f, scale] = loaddata(file, 1, frames);
-
-% Scale.
-scale = scale * 1e6;
-
-% Reverse z-coordinate.
-f = cellfun(@(X) flip(X, 3), f, 'UniformOutput', false);
-
-% Find approximate cell centers.
-CC = cellcenters(f, sigma, hsize, threshold, area);
-
-% Scale local maxima.
-C = cellfun(@(X) bsxfun(@times, X, scale), CC, 'UniformOutput', false);
-
-% Align cell centers around origin.
-[C, sc, sr] = aligncenters(C, 300);
-
-% Fit surface and obtain Fourier coefficients.
-[cs, ~] = fitsurface(Ns, C, beta0, beta1, s);
-
-% Triangulate of the upper unit hemi-sphere for placement of basis functions.
-[~, X] = halfsphTriang(ref);
-
-% Create integration points and quadrature rule for spherical cap.
-[xi, w] = gausslegendre(deg, pi/2);
-
-% Compute evaluation points.
-Y = sphcoord(xi, eye(3));
-
-% Compute synthesis of evaluation points.
-[Sy, ~] = cellfun(@(c) surfsynth(Ns, Y, c), cs, 'UniformOutput', false);
-
-% Normalise data.
-f = cellfun(@(x) double(x) ./ 255, f, 'UniformOutput', false);
-
-% Evaluate data.
-fx = evaldata(f, scale, Sy, sc, bandwidth, layers);
-
-% Compute temporal derivative.
-dtfx = cellfun(@(x, y) (y - x) / dt, fx(1:end - 1), fx(2:end), 'UniformOutput', false);
-
-% Compute surface normals.
-N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
-
-% Compute surface gradient.
-gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
-
-% Create segmentation.
-%seg = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
-seg = fx;
-%seg = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
+% Initialise arrays.
+c = cell(length(frames)-1, length(alpha));
+L = cell(length(frames)-1, length(alpha));
 
 % Run through all pair of frames.
 for t=1:length(frames)-1
-    fprintf('Computing velocity field %i/%i.\n', t, length(frames)-1);
+    fprintf('Solving linear system for OF %i/%i.\n', t, length(frames)-1);
     
-    tic;
-    % Compute optimality conditions.
-    [~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
-
-    % Solve linear system.
-    [ofc{t}, L{t}] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, 2000);
-    fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
-    toc;
-
+    for p=1:length(alpha)
+        % Solve linear system.
+        timerVal = tic;
+        [c{t, p}, L{t, p}] = solvesystem(A{t} + alpha{p} * D{t} + beta{p} * E{t}, b{t}, tolSolver, iterSolver);
+        fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
+        elapsed = toc(timerVal);
+        fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+    end
 end
 
-% Save experiment.
-save(fullfile(outputPath, sprintf('%s.mat', name)), 'name', 'file', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'k', 'h', 'X', 'mem', 'ofc', 'L', 'alpha', 'beta', 'gamma', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', '-v7.3');
+% Save experiments.
+save(fullfile(path, datestr, sprintf('%s-coeff-of.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
+
+%% Run experiments for mass conservation.
+
+% Load linear systems for optical flow.
+load(fullfile(path, sprintf('%s-linsys-cm.mat', datestr)));
+
+% Set regularisation parameters.
+alpha = {0.01, 0.1};
+beta = {0.001, 0.001};
+gamma = {0.1, 0.1};
+
+% Initialise arrays.
+c = cell(length(frames)-1, length(alpha));
+L = cell(length(frames)-1, length(alpha));
+
+% Run through all pair of frames.
+for t=1:length(frames)-1
+    fprintf('Solving linear system for CM %i/%i.\n', t, length(frames)-1);
+    
+    for p=1:length(alpha)
+        % Solve linear system.
+        timerVal = tic;
+        [c{t, p}, L{t, p}] = solvesystem(A{t} + alpha{p} * D{t} + beta{p} * E{t} + gamma{p} * G{t}, b{t}, tolSolver, iterSolver);
+        fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
+        elapsed = toc(timerVal);
+        fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+    end
+end
+
+% Save experiments.
+save(fullfile(path, datestr, sprintf('%s-coeff-cm.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
