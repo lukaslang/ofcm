@@ -16,11 +16,10 @@
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 
 % This script loads the data, computes optimality conditions, and outputs
-% three files:
+% several files:
 %
 %   results/[name]/[yyyy-mm-dd-HH-MM-SS]-data.mat
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-of.mat
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-cm.mat
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-000.mat
 %
 clear;
 close all;
@@ -132,25 +131,16 @@ seg = fx;
 % Save data and parameters.
 save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'seg', '-v7.3');
 
-% Initialise cell arrays.
-Aof = cell(length(frames)-1, 1);
-Acm = cell(length(frames)-1, 1);
-D = cell(length(frames)-1, 1);
-E = cell(length(frames)-1, 1);
-G = cell(length(frames)-1, 1);
-bof = cell(length(frames)-1, 1);
-bcm = cell(length(frames)-1, 1);
-
 % Run through all pair of frames.
 for t=1:length(frames)-1
     fprintf('Computing optimality conditions %i/%i.\n', t, length(frames)-1);
     
     % Compute optimality conditions.
     timerVal = tic;
-    [~, Aof{t}, Acm{t}, D{t}, E{t}, G{t}, bof{t}, bcm{t}] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
+    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
     elapsed = toc(timerVal);
     fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+    
+    % Save linear systems.
+    save(fullfile(outputPath, sprintf('%s-linsys-%.3i.mat', startdate, t)), 'Aof', 'Acm', 'D', 'E', 'G', 'bof', 'bcm', '-v7.3');
 end
-
-% Save linear systems.
-save(fullfile(outputPath, sprintf('%s-linsys.mat', startdate)), 'Aof', 'Acm', 'D', 'E', 'G', 'bof', 'bcm', '-v7.3');
