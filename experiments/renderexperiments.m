@@ -27,19 +27,14 @@ clc;
 name = 'cxcr4aMO2_290112';
 
 % Set datestring of generated data.
-datestr1 = '2017-05-11-11-51-40';
+timestamp1 = '2017-05-11-14-52-57';
 
 % Set datestring of experiment.
-datestr2 = '2017-05-11-11-51-40';
+timestamp2 = '2017-05-11-15-34-00';
 
 % Load data.
 path = fullfile('results', name);
-file = fullfile(path, sprintf('%s-data.mat', datestr1));
-load(file);
-
-% Load experiment.
-path = fullfile('results', name, datestr1);
-file = fullfile(path, sprintf('%s-coeff-of.mat', datestr2));
+file = fullfile(path, sprintf('%s-data.mat', timestamp1));
 load(file);
 
 % Load colormap.
@@ -75,12 +70,58 @@ el = pi/2 - el;
 % Compute tangent basis.
 [d1, d2] = cellfun(@(c) surftanbasis(Ns, c, [el, az]), cs(1:end-1), 'UniformOutput', false);
 
+% Create output folder.
+outputPath = fullfile('results', name, timestamp1, timestamp2);
+mkdir(outputPath);
+
+% Plot data.
+for t=1:size(fd, 1)
+    % Plot surface image.
+    figure(1);
+    cla;
+    hold on;
+    colorbar;
+    colormap(cmap);
+    trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+    daspect([1, 1, 1]);
+    view(2);
+    
+    % Plot segmentation.
+    figure(2);
+    cla;
+    hold on;
+    colorbar;
+    colormap(cmap);
+    trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), sfd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+    daspect([1, 1, 1]);
+    view(2);
+    
+    % Save figures.
+    export_fig(1, fullfile(outputPath, sprintf('%s-dat-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    export_fig(2, fullfile(outputPath, sprintf('%s-seg-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+end
+close all;
+
+% Plot colourwheel.
+figure(3);
+cla;
+cw = colourWheel;
+surf(1:200, 1:200, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+daspect([1, 1, 1]);
+view(2);
+export_fig(3, fullfile(outputPath, 'colourwheel.png'), '-png', '-q300', '-a1', '-transparent');
+
+% Load experiment.
+path = fullfile('results', name, timestamp1);
+file = fullfile(path, sprintf('%s-coeff-of.mat', timestamp2));
+load(file);
+
 % Run through all parameter configurations.
 for p=1:size(c, 2)
     fprintf('Parameter setting %i/%i.\n', p, size(c, 2));
     
     % Create output folder.
-    outputPath = fullfile('results', name, datestr1, datestr2, p);
+    outputPath = fullfile('results', name, timestamp1, timestamp2, sprintf('of-setting-%i', p));
     mkdir(outputPath);
     
     % Run through all pairs of frames.
@@ -88,7 +129,7 @@ for p=1:size(c, 2)
         fprintf('Rendering frame %i/%i.\n', t, size(c, 1));
         
         % Compute pushforward of basis functions.
-        v = bsxfun(@times, full((bfc1')*ofc{t}), d1{t}) + bsxfun(@times, full((bfc2')*ofc{t}), d2{t});
+        v = bsxfun(@times, full((bfc1')*c{t, p}), d1{t}) + bsxfun(@times, full((bfc2')*c{t, p}), d2{t});
 
         figure(1);
         cla;
@@ -101,17 +142,52 @@ for p=1:size(c, 2)
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
         title('Velocity field and surface data', 'FontName', 'Helvetica', 'FontSize', 14);
 
+        % Project and scale flow.
+        up = projecttoplane(v);
+
+        % Compute colour space scaling.
+        nmax = max(sqrt(sum(up.^2, 2)));
+
+        % Compute colour of projection.
+        col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
+
+        % Visualize flow.
         figure(2);
         cla;
         hold on;
-        colorbar;
-        colormap(cmap);
-        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), sfd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', col, 'EdgeColor', 'none');
         daspect([1, 1, 1]);
         view(2);
-        title('Segmentation', 'FontName', 'Helvetica', 'FontSize', 14);
+        title('Colour-coded velocity.', 'FontName', 'Helvetica', 'FontSize', 14);
 
-        figure(3);
+        % Save figures.
+        export_fig(1, fullfile(outputPath, sprintf('%s-vel-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+        export_fig(2, fullfile(outputPath, sprintf('%s-col-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+    end
+end
+close all;
+
+% Load experiment.
+path = fullfile('results', name, timestamp1);
+file = fullfile(path, sprintf('%s-coeff-cm.mat', timestamp2));
+load(file);
+
+% Run through all parameter configurations.
+for p=1:size(c, 2)
+    fprintf('Parameter setting %i/%i.\n', p, size(c, 2));
+    
+    % Create output folder.
+    outputPath = fullfile('results', name, timestamp1, timestamp2, sprintf('of-setting-%i', p));
+    mkdir(outputPath);
+    
+    % Run through all pairs of frames.
+    for t=1:size(c, 1)
+        fprintf('Rendering frame %i/%i.\n', t, size(c, 1));
+        
+        % Compute pushforward of basis functions.
+        v = bsxfun(@times, full((bfc1')*c{t, p}), d1{t}) + bsxfun(@times, full((bfc2')*c{t, p}), d2{t});
+
+        figure(1);
         cla;
         hold on;
         colorbar;
@@ -119,17 +195,8 @@ for p=1:size(c, 2)
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
         daspect([1, 1, 1]);
         view(2);
-        title('First frame.', 'FontName', 'Helvetica', 'FontSize', 14);
-
-        figure(4);
-        cla;
-        hold on;
-        colorbar;
-        colormap(cmap);
-        trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), fd{t+1}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-        daspect([1, 1, 1]);
-        view(2);
-        title('Second frame.', 'FontName', 'Helvetica', 'FontSize', 14);
+        quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
+        title('Velocity field and surface data', 'FontName', 'Helvetica', 'FontSize', 14);
 
         % Project and scale flow.
         up = projecttoplane(v);
@@ -141,7 +208,7 @@ for p=1:size(c, 2)
         col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 
         % Visualize flow.
-        figure(5);
+        figure(2);
         cla;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', col, 'EdgeColor', 'none');
@@ -149,20 +216,9 @@ for p=1:size(c, 2)
         view(2);
         title('Colour-coded velocity.', 'FontName', 'Helvetica', 'FontSize', 14);
 
-        % Plot colourwheel.
-        figure(6);
-        cla;
-        cw = colourWheel;
-        surf(1:200, 1:200, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        daspect([1, 1, 1]);
-        view(2);
-        title('Colour disk.', 'FontName', 'Helvetica', 'FontSize', 14);
-
         % Save figures.
         export_fig(1, fullfile(outputPath, sprintf('%s-vel-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-        export_fig(2, fullfile(outputPath, sprintf('%s-seg-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-        export_fig(3, fullfile(outputPath, sprintf('%s-img1-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-        export_fig(4, fullfile(outputPath, sprintf('%s-img2-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
-        export_fig(5, fullfile(outputPath, sprintf('%s-col-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
+        export_fig(2, fullfile(outputPath, sprintf('%s-col-frame-%.3i.png', name, t)), '-png', '-q300', '-a1', '-transparent');
     end
 end
+close all;

@@ -43,7 +43,7 @@ outputPath = fullfile('results', name);
 mkdir(outputPath);
 
 % Specify max. memory for matrix multiplication.
-mem = 3*1024^3;
+mem = 5*1024^3;
 
 % Define Gaussian filter.
 sigma = 1.5;
@@ -54,9 +54,9 @@ threshold = 80;
 area = 100;
 
 % Define surface fitting parameters.
-Ns = 0:10;
+Ns = 0:30;
 beta0 = 1e-4;
-beta1 = 1;
+beta1 = 0.5;
 s = 3+eps;
 
 % Set temporal derivative.
@@ -74,7 +74,7 @@ k = 3;
 h = 0.95;
 
 % Define degree of integration.
-deg = 400;
+deg = 600;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);

@@ -33,13 +33,13 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-datestr = '2017-05-10-21-00-48';
+timestamp = '2017-05-11-14-52-57';
 
 % Define folder.
 path = fullfile('results', name);
 
 % Create output folder.
-mkdir(fullfile(path, datestr));
+mkdir(fullfile(path, timestamp));
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -51,19 +51,19 @@ iterSolver = 2000;
 %% Run experiments for optical flow.
 
 % Load linear systems for optical flow.
-load(fullfile(path, sprintf('%s-linsys-of.mat', datestr)));
+load(fullfile(path, sprintf('%s-linsys-of.mat', timestamp)));
 
 % Set regularisation parameters.
-alpha = {0.01, 0.1};
-beta = {0.001, 0.001};
+alpha = {0.001, 0.01, 0.1, 1};
+beta = {0.001, 0.001, 0.001, 0.001};
 
 % Initialise arrays.
-c = cell(length(frames)-1, length(alpha));
-L = cell(length(frames)-1, length(alpha));
+c = cell(size(A, 1), length(alpha));
+L = cell(size(A, 1), length(alpha));
 
 % Run through all pair of frames.
-for t=1:length(frames)-1
-    fprintf('Solving linear system for OF %i/%i.\n', t, length(frames)-1);
+for t=1:size(A, 1)
+    fprintf('Solving linear system for OF %i/%i.\n', t, size(A, 1));
     
     for p=1:length(alpha)
         % Solve linear system.
@@ -76,25 +76,25 @@ for t=1:length(frames)-1
 end
 
 % Save experiments.
-save(fullfile(path, datestr, sprintf('%s-coeff-of.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
+save(fullfile(path, timestamp, sprintf('%s-coeff-of.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
 
 %% Run experiments for mass conservation.
 
 % Load linear systems for optical flow.
-load(fullfile(path, sprintf('%s-linsys-cm.mat', datestr)));
+load(fullfile(path, sprintf('%s-linsys-cm.mat', timestamp)));
 
 % Set regularisation parameters.
-alpha = {0.01, 0.1};
-beta = {0.001, 0.001};
-gamma = {0.1, 0.1};
+alpha = {0.001, 0.01, 0.1, 1};
+beta = {0.001, 0.001, 0.001, 0.001};
+gamma = {0.1, 0.1, 0.1, 0.1};
 
 % Initialise arrays.
-c = cell(length(frames)-1, length(alpha));
-L = cell(length(frames)-1, length(alpha));
+c = cell(size(A, 1), length(alpha));
+L = cell(size(A, 1), length(alpha));
 
 % Run through all pair of frames.
-for t=1:length(frames)-1
-    fprintf('Solving linear system for CM %i/%i.\n', t, length(frames)-1);
+for t=1:size(A, 1)
+    fprintf('Solving linear system for CM %i/%i.\n', t, size(A, 1));
     
     for p=1:length(alpha)
         % Solve linear system.
@@ -107,4 +107,4 @@ for t=1:length(frames)-1
 end
 
 % Save experiments.
-save(fullfile(path, datestr, sprintf('%s-coeff-cm.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
+save(fullfile(path, timestamp, sprintf('%s-coeff-cm.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
