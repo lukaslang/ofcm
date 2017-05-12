@@ -32,7 +32,7 @@ file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
 %frames = 112:115;
-frames = 110:130;
+frames = 80:150;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -53,9 +53,9 @@ threshold = 80;
 area = 100;
 
 % Define surface fitting parameters.
-Ns = 0:30;
+Ns = 0:10;
 beta0 = 1e-4;
-beta1 = 0.5;
+beta1 = 1;
 s = 3+eps;
 
 % Set temporal derivative.

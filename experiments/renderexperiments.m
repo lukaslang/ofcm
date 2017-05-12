@@ -30,7 +30,7 @@ name = 'cxcr4aMO2_290112';
 timestamp1 = '2017-05-11-23-25-02';
 
 % Set datestring of experiment.
-timestamp2 = '2017-05-12-09-46-08';
+timestamp2 = '2017-05-12-10-21-54';
 
 % Load data.
 path = fullfile('results', name);
