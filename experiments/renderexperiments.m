@@ -27,10 +27,10 @@ clc;
 name = 'cxcr4aMO2_290112';
 
 % Set datestring of generated data.
-timestamp1 = '2017-05-11-14-52-57';
+timestamp1 = '2017-05-11-23-25-02';
 
 % Set datestring of experiment.
-timestamp2 = '2017-05-11-15-34-00';
+timestamp2 = '2017-05-12-09-46-08';
 
 % Load data.
 path = fullfile('results', name);
@@ -111,25 +111,25 @@ daspect([1, 1, 1]);
 view(2);
 export_fig(3, fullfile(outputPath, 'colourwheel.png'), '-png', '-q300', '-a1', '-transparent');
 
-% Load experiment.
-path = fullfile('results', name, timestamp1);
-file = fullfile(path, sprintf('%s-coeff-of.mat', timestamp2));
-load(file);
+% Run through all pairs of frames.
+for t=1:length(frames)-1
+    fprintf('Rendering frame %i/%i.\n', t, length(frames)-1);
 
-% Run through all parameter configurations.
-for p=1:size(c, 2)
-    fprintf('Parameter setting %i/%i.\n', p, size(c, 2));
-    
-    % Create output folder.
-    outputPath = fullfile('results', name, timestamp1, timestamp2, sprintf('of-setting-%i', p));
-    mkdir(outputPath);
-    
-    % Run through all pairs of frames.
-    for t=1:size(c, 1)
-        fprintf('Rendering frame %i/%i.\n', t, size(c, 1));
+     % Load experiment.
+    path = fullfile('results', name, timestamp1);
+    file = fullfile(path, sprintf('%s-coeff-of-%.3i.mat', timestamp2, t));
+    load(file);
+
+    % Run through all parameter configurations.
+    for p=1:length(c)
+        fprintf('Parameter setting %i/%i.\n', p, length(c));
+
+        % Create output folder.
+        outputPath = fullfile('results', name, timestamp1, timestamp2, sprintf('of-setting-%i', p));
+        mkdir(outputPath);
         
         % Compute pushforward of basis functions.
-        v = bsxfun(@times, full((bfc1')*c{t, p}), d1{t}) + bsxfun(@times, full((bfc2')*c{t, p}), d2{t});
+        v = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
 
         figure(1);
         cla;
@@ -167,25 +167,25 @@ for p=1:size(c, 2)
 end
 close all;
 
-% Load experiment.
-path = fullfile('results', name, timestamp1);
-file = fullfile(path, sprintf('%s-coeff-cm.mat', timestamp2));
-load(file);
+% Run through all pairs of frames.
+for t=1:length(frames)-1
+    fprintf('Rendering frame %i/%i.\n', t, length(frames)-1);
 
-% Run through all parameter configurations.
-for p=1:size(c, 2)
-    fprintf('Parameter setting %i/%i.\n', p, size(c, 2));
-    
-    % Create output folder.
-    outputPath = fullfile('results', name, timestamp1, timestamp2, sprintf('of-setting-%i', p));
-    mkdir(outputPath);
-    
-    % Run through all pairs of frames.
-    for t=1:size(c, 1)
-        fprintf('Rendering frame %i/%i.\n', t, size(c, 1));
+     % Load experiment.
+    path = fullfile('results', name, timestamp1);
+    file = fullfile(path, sprintf('%s-coeff-cm-%.3i.mat', timestamp2, t));
+    load(file);
+
+    % Run through all parameter configurations.
+    for p=1:length(c)
+        fprintf('Parameter setting %i/%i.\n', p, length(c));
+
+        % Create output folder.
+        outputPath = fullfile('results', name, timestamp1, timestamp2, sprintf('cm-setting-%i', p));
+        mkdir(outputPath);
         
         % Compute pushforward of basis functions.
-        v = bsxfun(@times, full((bfc1')*c{t, p}), d1{t}) + bsxfun(@times, full((bfc2')*c{t, p}), d2{t});
+        v = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
 
         figure(1);
         cla;

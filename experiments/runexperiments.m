@@ -57,8 +57,8 @@ alpha = {0.001, 0.01, 0.1, 1};
 beta = {0.001, 0.001, 0.001, 0.001};
 
 % Initialise arrays.
-c = cell(length(frames)-1, length(alpha));
-L = cell(length(frames)-1, length(alpha));
+c = cell(length(alpha), 1);
+L = cell(length(alpha), 1);
 
 % Run through all pair of frames.
 for t=1:length(frames)-1
@@ -71,7 +71,7 @@ for t=1:length(frames)-1
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{t, p}, L{t, p}] = solvesystem(Aof + alpha{p} * D + beta{p} * E, bof, tolSolver, iterSolver);
+        [c{p}, L{p}] = solvesystem(Aof + alpha{p} * D + beta{p} * E, bof, tolSolver, iterSolver);
         fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
         elapsed = toc(timerVal);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
@@ -89,8 +89,8 @@ beta = {0.001, 0.001, 0.001, 0.001};
 gamma = {0.1, 0.1, 0.1, 0.1};
 
 % Initialise arrays.
-c = cell(length(frames)-1, length(alpha));
-L = cell(length(frames)-1, length(alpha));
+c = cell(length(alpha), 1);
+L = cell(length(alpha), 1);
 
 % Run through all pair of frames.
 for t=1:length(frames)-1
@@ -103,7 +103,7 @@ for t=1:length(frames)-1
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{t, p}, L{t, p}] = solvesystem(Acm + alpha{p} * D + beta{p} * E + gamma{p} * G, bcm, tolSolver, iterSolver);
+        [c{p}, L{p}] = solvesystem(Acm + alpha{p} * D + beta{p} * E + gamma{p} * G, bcm, tolSolver, iterSolver);
         fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
         elapsed = toc(timerVal);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
