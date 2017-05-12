@@ -32,7 +32,7 @@ file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
 %frames = 112:115;
-frames = 80:150;
+frames = 100:130;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
