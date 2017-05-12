@@ -32,7 +32,7 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-timestamp = '2017-05-11-23-25-02';
+timestamp = '2017-05-12-12-01-31';
 
 % Define folder.
 path = fullfile('results', name);
