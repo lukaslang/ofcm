@@ -16,15 +16,14 @@
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 
 % This script loads optimality conditions, computes coefficients by solving
-% the linear systems, and outputs two files:
+% the linear systems, and outputs files:
 %
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]/[yyyy-mm-dd-HH-MM-SS]-coeff-of.mat
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]/[yyyy-mm-dd-HH-MM-SS]-coeff-cm.mat
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]/[yyyy-mm-dd-HH-MM-SS]-coeff-of-000.mat
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]/[yyyy-mm-dd-HH-MM-SS]-coeff-cm-000.mat
 %
 % where the first datestring is from the files prepareexperiments.m:
 %
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-of.mat
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-cm.mat
+%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-000.mat
 %
 % and the second datestring is generated.
 clear;
@@ -33,7 +32,7 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-timestamp = '2017-05-11-14-52-57';
+timestamp = '2017-05-11-23-25-02';
 
 % Define folder.
 path = fullfile('results', name);
@@ -48,8 +47,8 @@ startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 tolSolver = 1e-6;
 iterSolver = 2000;
 
-% Load linear systems.
-load(fullfile(path, sprintf('%s-linsys.mat', timestamp)));
+% Load metadata.
+load(fullfile(path, sprintf('%s-data.mat', timestamp)), 'frames');
 
 %% Run experiments for optical flow.
 
@@ -58,25 +57,29 @@ alpha = {0.001, 0.01, 0.1, 1};
 beta = {0.001, 0.001, 0.001, 0.001};
 
 % Initialise arrays.
-c = cell(size(Aof, 1), length(alpha));
-L = cell(size(Aof, 1), length(alpha));
+c = cell(length(frames)-1, length(alpha));
+L = cell(length(frames)-1, length(alpha));
 
 % Run through all pair of frames.
-for t=1:size(Aof, 1)
-    fprintf('Solving linear system for OF %i/%i.\n', t, size(Aof, 1));
+for t=1:length(frames)-1
+    fprintf('Solving linear system for OF %i/%i.\n', t, length(frames)-1);
     
+    % Load linear systems.
+    load(fullfile(path, sprintf('%s-linsys-%.3i.mat', timestamp, t)), 'Aof', 'D', 'E', 'bof');
+    
+    % Run through parameter settings.
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{t, p}, L{t, p}] = solvesystem(Aof{t} + alpha{p} * D{t} + beta{p} * E{t}, bof{t}, tolSolver, iterSolver);
+        [c{t, p}, L{t, p}] = solvesystem(Aof + alpha{p} * D + beta{p} * E, bof, tolSolver, iterSolver);
         fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
         elapsed = toc(timerVal);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     end
+    
+    % Save experiments.
+    save(fullfile(path, timestamp, sprintf('%s-coeff-of-%.3i.mat', startdate, t)), 'c', 'L', 'alpha', 'beta', '-v7.3');
 end
-
-% Save experiments.
-save(fullfile(path, timestamp, sprintf('%s-coeff-of.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
 
 %% Run experiments for mass conservation.
 
@@ -86,22 +89,26 @@ beta = {0.001, 0.001, 0.001, 0.001};
 gamma = {0.1, 0.1, 0.1, 0.1};
 
 % Initialise arrays.
-c = cell(size(Acm, 1), length(alpha));
-L = cell(size(Acm, 1), length(alpha));
+c = cell(length(frames)-1, length(alpha));
+L = cell(length(frames)-1, length(alpha));
 
 % Run through all pair of frames.
-for t=1:size(Acm, 1)
-    fprintf('Solving linear system for CM %i/%i.\n', t, size(Acm, 1));
+for t=1:length(frames)-1
+    fprintf('Solving linear system for CM %i/%i.\n', t, length(frames)-1);
     
+    % Load linear systems.
+    load(fullfile(path, sprintf('%s-linsys-%.3i.mat', timestamp, t)), 'Acm', 'D', 'E', 'G', 'bcm');
+    
+    % Run through parameter settings.
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{t, p}, L{t, p}] = solvesystem(Acm{t} + alpha{p} * D{t} + beta{p} * E{t} + gamma{p} * G{t}, bcm{t}, tolSolver, iterSolver);
+        [c{t, p}, L{t, p}] = solvesystem(Acm + alpha{p} * D + beta{p} * E + gamma{p} * G, bcm, tolSolver, iterSolver);
         fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
         elapsed = toc(timerVal);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     end
+    
+    % Save experiments.
+    save(fullfile(path, timestamp, sprintf('%s-coeff-cm-%.3i.mat', startdate, t)), 'c', 'L', 'alpha', 'beta', '-v7.3');
 end
-
-% Save experiments.
-save(fullfile(path, timestamp, sprintf('%s-coeff-cm.mat', startdate)), 'c', 'L', 'alpha', 'beta', '-v7.3');
