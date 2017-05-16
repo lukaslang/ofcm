@@ -32,6 +32,7 @@ addpath(genpath(fullfile(ofdPath, 'visualisation')));
 % Add OFISH.
 ofishPath = '../ofish';
 addpath(genpath(fullfile(ofishPath, 'util')));
+addpath(genpath(fullfile(ofishPath, 'visualisation')));
 
 % Add all subfolders.
 y = dir('.');
