@@ -32,7 +32,7 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-timestamp = '2017-05-16-13-50-15';
+timestamp = '2017-05-17-16-56-15';
 
 % Define folder.
 path = fullfile('results', name);
@@ -43,17 +43,13 @@ mkdir(fullfile(path, timestamp));
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 
-% Set solver parameters.
-tolSolver = 1e-6;
-iterSolver = 2000;
-
 % Load metadata.
 load(fullfile(path, sprintf('%s-data.mat', timestamp)), 'frames');
 
 %% Run experiments for optical flow.
 
 % Set regularisation parameters.
-[alpha, beta] = meshgrid([0.001, 0.01, 0.1], [0.001, 0.01]);
+[alpha, beta] = meshgrid([0.001, 0.01], [0.001, 0.01]);
 alpha = num2cell(alpha(:));
 beta = num2cell(beta(:));
 
@@ -72,9 +68,10 @@ for t=1:length(frames)-1
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{p}, L{p}] = solvesystem(Aof + alpha{p} * D + beta{p} * E, bof, tolSolver, iterSolver);
-        fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
+        c{p} = (Aof + alpha{p} * D + beta{p} * E) \ bof;
+        L{p}.relres = norm((Aof + alpha{p} * D + beta{p} * E) * c{p} - bof) / norm(bof);
         elapsed = toc(timerVal);
+        fprintf('Relative residual %e.\n', L{p}.relres);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     end
     
@@ -85,7 +82,7 @@ end
 %% Run experiments for mass conservation.
 
 % Set regularisation parameters.
-[alpha, beta, gamma] = meshgrid([0.001, 0.01, 0.1], [0.001, 0.01], [0.1, 1]);
+[alpha, beta, gamma] = meshgrid([0.001, 0.01], [0.001, 0.01], [0.1, 1]);
 alpha = num2cell(alpha(:));
 beta = num2cell(beta(:));
 gamma = num2cell(gamma(:));
@@ -105,9 +102,10 @@ for t=1:length(frames)-1
     for p=1:length(alpha)
         % Solve linear system.
         timerVal = tic;
-        [c{p}, L{p}] = solvesystem(Acm + alpha{p} * D + beta{p} * E + gamma{p} * G, bcm, tolSolver, iterSolver);
-        fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L{t}.iter(2), L{t}.relres);
+        c{p} = (Acm + alpha{p} * D + beta{p} * E + gamma{p} * G) \ bcm;
+        L{p}.relres = norm((Acm + alpha{p} * D + beta{p} * E + gamma{p} * G) * c{p} - bcm) / norm(bcm);
         elapsed = toc(timerVal);
+        fprintf('Relative residual %e.\n', L{p}.relres);
         fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     end
     

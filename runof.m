@@ -127,8 +127,8 @@ t = 1;
 [~, A, D, E, b] = optcond(Ns, cs{t}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, mem);
 
 % Solve linear system.
-[ofc, L] = solvesystem(A + alpha * D + beta * E, b, 1e-6, 2000);
-fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L.iter(2), L.relres);
+ofc = (A + alpha * D + beta * E) \ b;
+fprintf('Relative residual %e.\n', norm((A + alpha * D + beta * E)*ofc - b)/norm(b));
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(7);

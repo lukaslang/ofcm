@@ -326,7 +326,6 @@ mkdir(fullfile(outputPath, 'flow2-of'));
 mkdir(fullfile(outputPath, 'flow3-of'));
 mkdir(fullfile(outputPath, 'motion2-of'));
 mkdir(fullfile(outputPath, 'motion3-of'));
-mkdir(fullfile(outputPath, 'residual-of'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %i/%i.\n', t, length(frames)-1);
 
@@ -338,22 +337,6 @@ for t=1:length(frames)-1
     % Run through all parameter configurations.
     for p=1:length(c)
         fprintf('Parameter setting %i/%i.\n', p, length(c));
-        
-        % Plot residual vector.
-        figure(1);
-        cla;
-        plot(0:length(L{p}.resvec)-1, L{p}.resvec/L{p}.rhs, 'b-');
-        if(isempty(L{p}.restart))
-            pos = L{p}.iter(2);
-        else
-            pos = (L{p}.iter(1)-1)*L{p}.restart+L{p}.iter(2);
-        end
-        plot(pos, L{p}.relres, 'rx');
-        text(pos, L{p}.relres,  sprintf('%0.5f', L{p}.relres), 'horizontal', 'right', 'vertical', 'bottom');
-        axis on;
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
-        export_fig(fullfile(outputPath, 'residual-of', sprintf('res-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
         
         % Compute pushforward of basis functions.
         v = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
@@ -461,7 +444,6 @@ mkdir(fullfile(outputPath, 'flow2-cm'));
 mkdir(fullfile(outputPath, 'flow3-cm'));
 mkdir(fullfile(outputPath, 'motion2-cm'));
 mkdir(fullfile(outputPath, 'motion3-cm'));
-mkdir(fullfile(outputPath, 'residual-cm'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %i/%i.\n', t, length(frames)-1);
 
@@ -473,23 +455,6 @@ for t=1:length(frames)-1
     % Run through all parameter configurations.
     for p=1:length(c)
         fprintf('Parameter setting %i/%i.\n', p, length(c));
-        
-        % Plot residual vector.
-        figure(1);
-        cla;
-        plot(0:length(L{p}.resvec)-1, L{p}.resvec/L{p}.rhs, 'b-');
-        if(isempty(L{p}.restart))
-            pos = L{p}.iter(2);
-        else
-            pos = (L{p}.iter(1)-1)*L{p}.restart+L{p}.iter(2);
-        end
-        plot(pos, L{p}.relres, 'rx');
-        text(pos, L{p}.relres,  sprintf('%0.5f', L{p}.relres), 'horizontal', 'right', 'vertical', 'bottom');
-        axis on;
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
-        export_fig(fullfile(outputPath, 'residual-cm', sprintf('res-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
-        
         
         % Compute pushforward of basis functions.
         v = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});

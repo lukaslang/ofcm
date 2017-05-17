@@ -78,7 +78,8 @@ if(nframes > 1)
 end
 
 % Solve linear system.
-c = gmres(A + D + B, b, [], 1e-6, min(2000, size(A, 1)));
+c = (A + D + B) \ b;
+fprintf('Relative residual %e.\n', norm((A + D + B)*c - b) / norm(b));
 c = mat2cell(c, repmat(dim, nframes, 1));
 
 end

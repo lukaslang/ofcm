@@ -128,8 +128,8 @@ t = 1;
 [~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, fx{t+1}, fx{t+1}, mem);
 
 % Solve linear system.
-[ofc, L] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, 2000);
-fprintf('GMRES terminated at iteration %i with relative residual %e.\n', L.iter(2), L.relres);
+ofc = (A + alpha * D + beta * E + gamma * G) \ b;
+fprintf('Relative residual %e.\n', norm((A + alpha * D + beta * E + gamma * G)*ofc - b)/norm(b));
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(7);
