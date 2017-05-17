@@ -71,7 +71,7 @@ ref = 5;
 
 % Set parameters for basis function.
 k = 3;
-h = 0.95;
+h = 0.99;
 
 % Define degree of integration.
 deg = 400;

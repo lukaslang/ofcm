@@ -54,7 +54,7 @@ P = cellfun(@(x) kron(rs', x), S, 'UniformOutput', false);
 P = cellfun(@(s) bsxfun(@plus, s, sc), P, 'UniformOutput', false);
 
 % Compute gradient in embedding space.
-[gy, gx, gz] = cellfun(@(x) gradient(double(x), scale(1), scale(2), scale(3)), f, 'UniformOutput', false);
+[gy, gx, gz] = cellfun(@(x) gradient(double(permute(x, [2, 1, 3])), scale(1), scale(2), scale(3)), f, 'UniformOutput', false);
 
 % Obtain data.
 gx = cellfun(@(s, x) dataFromCube(s(:, 1), s(:, 2), s(:, 3), X, Y, Z, x), P, gx, 'UniformOutput', false);

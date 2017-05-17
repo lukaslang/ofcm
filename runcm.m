@@ -39,7 +39,7 @@ sigma = 1.5;
 hsize = 30;
 
 % Define thresholding filter.
-t = 80;
+threshold = 80;
 area = 100;
 
 % Define surface fitting parameters.
@@ -60,7 +60,7 @@ ref = 5;
 
 % Set parameters for basis function.
 k = 3;
-h = 0.95;
+h = 0.99;
 
 % Define degree of integration.
 deg = 400;
@@ -80,7 +80,7 @@ scale = scale * 1e6;
 f = cellfun(@(X) flip(X, 3), f, 'UniformOutput', false);
 
 % Find approximate cell centers.
-CC = cellcenters(f, sigma, hsize, t, area);
+CC = cellcenters(f, sigma, hsize, threshold, area);
 
 % Scale local maxima.
 C = cellfun(@(X) bsxfun(@times, X, scale), CC, 'UniformOutput', false);

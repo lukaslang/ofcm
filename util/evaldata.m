@@ -53,7 +53,7 @@ P = cellfun(@(x) kron(rs', x), S, 'UniformOutput', false);
 P = cellfun(@(s) bsxfun(@plus, s, sc), P, 'UniformOutput', false);
 
 % Obtain data.
-fx = cellfun(@(s, x) dataFromCube(s(:, 1), s(:, 2), s(:, 3), X, Y, Z, double(x)), P, f, 'UniformOutput', false);
+fx = cellfun(@(s, x) dataFromCube(s(:, 1), s(:, 2), s(:, 3), X, Y, Z, double(permute(x, [2, 1, 3]))), P, f, 'UniformOutput', false);
 fx = cellfun(@(x, s) max(reshape(x, size(s, 1), length(rs)), [], 2), fx, S, 'UniformOutput', false);
 
 end

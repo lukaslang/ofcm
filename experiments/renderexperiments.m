@@ -151,7 +151,33 @@ close all;
 % Plot data.
 mkdir(fullfile(outputPath, 'data2'));
 mkdir(fullfile(outputPath, 'data3'));
-for t=1:length(frames)-1   
+mkdir(fullfile(outputPath, 'raw3'));
+for t=1:length(frames)-1
+    
+    % Raw data.
+    figure(1);
+    cla;
+    colormap(cmap);
+    axis square;
+    hold on;
+    vol3d('cdata', f{t}, 'XData', scale(2) * [0, 512] - sc(1), 'YData', scale(1) * [0, 512] - sc(2), 'ZData', scale(3) * [0, 44] - sc(3));
+    daspect([1, 1, 1]);
+    view(3);
+    set(gca, 'ZLim', [0, 450]);
+    set(gca, 'XLim', [-450, 450]);
+    set(gca, 'YLim', [-450, 450]);
+    set(gca, 'XTick', -450:150:450);
+    set(gca, 'YTick', -450:150:450);
+    set(gca, 'ZTick', -450:150:450);
+    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
+    set(gca, 'FontName', 'Helvetica' );
+    set(gca, 'FontSize', 14);
+    export_fig(fullfile(outputPath, 'raw3', sprintf('raw3-%s-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
+    
+    % Raw data and surface with data.
+    trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+    export_fig(fullfile(outputPath, 'raw3', sprintf('raw3-%s-surf-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
+    
     % Surface data.
     figure(1);
     cla;
@@ -235,6 +261,9 @@ veln = cellfun(@(x, y) dot(x, y, 2), vel, N, 'UniformOutput', false);
 % Compute signed norm.
 signednorm = cellfun(@(x, y) sign(x) .* sqrt(sum(y.^2, 2)), dtrho, vel, 'UniformOutput', false);
 
+% Open a file to save surface velocity.
+fid = fopen(fullfile(outputPath, 'surfvelocities.txt'), 'w');
+    
 % Plot surface velocity.
 mkdir(fullfile(outputPath, 'surfvel2'));
 mkdir(fullfile(outputPath, 'surfvel3'));
@@ -243,12 +272,16 @@ mkdir(fullfile(outputPath, 'surfveln3'));
 mkdir(fullfile(outputPath, 'signednormsurfvel2'));
 mkdir(fullfile(outputPath, 'signednormsurfvel3'));
 for t=1:length(frames)-1
+    
     % Project and scale.
     up = projecttoplane(vel{t});
 
     % Compute colour space scaling.
     nmax = max(sqrt(sum(up.^2, 2)));
 
+    % Save flow scaling.
+    fprintf(fid, 'Frame %i: V=%.4f, Vn=%.4f, proj(V)=%.4f\n', t, max(sqrt(sum(vel{t}.^2, 2))), max(sqrt(sum(veln{t}.^2, 2))), nmax);
+    
     % Compute colour of projection.
     col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 
@@ -331,6 +364,12 @@ for t=1:length(frames)-1
 end
 close all;
 
+% Close file.
+fclose(fid);
+
+% Open a file to save flow scaling.
+fid = fopen(fullfile(outputPath, 'velocities-of.txt'), 'w');
+
 % Run through all pairs of frames.
 mkdir(fullfile(outputPath, 'vec2-of'));
 mkdir(fullfile(outputPath, 'vec3-of'));
@@ -338,6 +377,7 @@ mkdir(fullfile(outputPath, 'flow2-of'));
 mkdir(fullfile(outputPath, 'flow3-of'));
 mkdir(fullfile(outputPath, 'motion2-of'));
 mkdir(fullfile(outputPath, 'motion3-of'));
+mkdir(fullfile(outputPath, 'residual-of'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %i/%i.\n', t, length(frames)-1);
 
@@ -345,12 +385,26 @@ for t=1:length(frames)-1
     path = fullfile('results', name, timestamp1);
     file = fullfile(path, sprintf('%s-coeff-of-%.3i.mat', timestamp2, t));
     load(file);
-
+    
     % Run through all parameter configurations.
     for p=1:length(c)
         fprintf('Parameter setting %i/%i.\n', p, length(c));
         
-        % Plot residual.
+        % Plot residual vector.
+        figure(1);
+        cla;
+        plot(0:length(L{p}.resvec)-1, L{p}.resvec/L{p}.rhs, 'b-');
+        if(isempty(L{p}.restart))
+            pos = L{p}.iter(2);
+        else
+            pos = (L{p}.iter(1)-1)*L{p}.restart+L{p}.iter(2);
+        end
+        plot(pos, L{p}.relres, 'rx');
+        text(pos, L{p}.relres,  sprintf('%0.5f', L{p}.relres), 'horizontal', 'right', 'vertical', 'bottom');
+        axis on;
+        set(gca, 'FontName', 'Helvetica' );
+        set(gca, 'FontSize', 14);
+        export_fig(fullfile(outputPath, 'residual-of', sprintf('res-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
         
         % Compute pushforward of basis functions.
         v = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
@@ -386,6 +440,9 @@ for t=1:length(frames)-1
         % Compute colour space scaling.
         nmax = max(sqrt(sum(up.^2, 2)));
 
+        % Save flow scaling.
+        fprintf(fid, 'Frame %i: w=%.4f, proj(w)=%.4, ', t, max(sqrt(sum(v.^2, 2))), nmax);
+    
         % Compute colour of projection.
         col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 
@@ -429,6 +486,9 @@ for t=1:length(frames)-1
         % Compute colour space scaling.
         nmax = max(sqrt(sum(up.^2, 2)));
 
+        % Save flow scaling.
+        fprintf(fid, 'U=%.4f, proj(U)=%.4\n', t, max(sqrt(sum((vel{t} + v).^2, 2))), nmax);
+        
         % Compute colour of projection.
         col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 
@@ -469,6 +529,12 @@ for t=1:length(frames)-1
 end
 close all;
 
+% Close file.
+fclose(fid);
+
+% Open a file to save flow scaling.
+fid = fopen(fullfile(outputPath, 'velocities-cm.txt'), 'w');
+
 % Run through all pairs of frames.
 mkdir(fullfile(outputPath, 'vec2-cm'));
 mkdir(fullfile(outputPath, 'vec3-cm'));
@@ -476,6 +542,7 @@ mkdir(fullfile(outputPath, 'flow2-cm'));
 mkdir(fullfile(outputPath, 'flow3-cm'));
 mkdir(fullfile(outputPath, 'motion2-cm'));
 mkdir(fullfile(outputPath, 'motion3-cm'));
+mkdir(fullfile(outputPath, 'residual-cm'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %i/%i.\n', t, length(frames)-1);
 
@@ -488,7 +555,22 @@ for t=1:length(frames)-1
     for p=1:length(c)
         fprintf('Parameter setting %i/%i.\n', p, length(c));
         
-        % Plot residual.
+        % Plot residual vector.
+        figure(1);
+        cla;
+        plot(0:length(L{p}.resvec)-1, L{p}.resvec/L{p}.rhs, 'b-');
+        if(isempty(L{p}.restart))
+            pos = L{p}.iter(2);
+        else
+            pos = (L{p}.iter(1)-1)*L{p}.restart+L{p}.iter(2);
+        end
+        plot(pos, L{p}.relres, 'rx');
+        text(pos, L{p}.relres,  sprintf('%0.5f', L{p}.relres), 'horizontal', 'right', 'vertical', 'bottom');
+        axis on;
+        set(gca, 'FontName', 'Helvetica' );
+        set(gca, 'FontSize', 14);
+        export_fig(fullfile(outputPath, 'residual-cm', sprintf('res-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
+        
         
         % Compute pushforward of basis functions.
         v = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
@@ -524,6 +606,9 @@ for t=1:length(frames)-1
         % Compute colour space scaling.
         nmax = max(sqrt(sum(up.^2, 2)));
 
+        % Save flow scaling.
+        fprintf(fid, 'Frame %i: u=%.4f, proj(u)=%.4, ', t, max(sqrt(sum(v.^2, 2))), nmax);
+        
         % Compute colour of projection.
         col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 
@@ -567,6 +652,9 @@ for t=1:length(frames)-1
         % Compute colour space scaling.
         nmax = max(sqrt(sum(up.^2, 2)));
 
+        % Save flow scaling.
+        fprintf(fid, 'U=%.4f, proj(U)=%.4\n', t, max(sqrt(sum((veln{t} .* N{t} + v).^2, 2))), nmax);
+        
         % Compute colour of projection.
         col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 
@@ -606,3 +694,6 @@ for t=1:length(frames)-1
     end
 end
 close all;
+
+% Close file.
+fclose(fid);

@@ -39,7 +39,7 @@ sigma = 1.5;
 hsize = 30;
 
 % Define thresholding filter.
-t = 80;
+threshold = 80;
 area = 100;
 
 % Define surface fitting parameters.
@@ -60,7 +60,7 @@ ref = 5;
 
 % Set parameters for basis function.
 k = 3;
-h = 0.95;
+h = 0.99;
 
 % Define degree of integration.
 deg = 400;
@@ -79,7 +79,7 @@ scale = scale * 1e6;
 f = cellfun(@(X) flip(X, 3), f, 'UniformOutput', false);
 
 % Find approximate cell centers.
-CC = cellcenters(f, sigma, hsize, t, area);
+CC = cellcenters(f, sigma, hsize, threshold, area);
 
 % Scale local maxima.
 C = cellfun(@(X) bsxfun(@times, X, scale), CC, 'UniformOutput', false);
@@ -123,8 +123,8 @@ s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
 % Select frame.
 t = 1;
 
-% Compute optimality conditions.
-[~, A, D, E, b] = optcond(Ns, cs{t+1}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, fx{t+1}, mem);
+% Compute optimality conditions (cell divisions use gradfx{t+1}, dtfx{t}, fx{t+1}).
+[~, A, D, E, b] = optcond(Ns, cs{t}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, mem);
 
 % Solve linear system.
 [ofc, L] = solvesystem(A + alpha * D + beta * E, b, 1e-6, 2000);
@@ -153,7 +153,7 @@ el = pi/2 - el;
 [d1, d2] = cellfun(@(c) surftanbasis(Ns, c, [el, az]), cs(1:end-1), 'UniformOutput', false);
 
 % Compute pushforward of basis functions.
-v = bsxfun(@times, full((bfc1')*ofc), d1{t+1}) + bsxfun(@times, full((bfc2')*ofc), d2{t+1});
+v = bsxfun(@times, full((bfc1')*ofc), d1{t}) + bsxfun(@times, full((bfc2')*ofc), d2{t});
 clear bfc1;
 clear bfc2;
 
@@ -167,24 +167,10 @@ sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
 figure;
 hold on;
 colormap(cmap);
-trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), fd{t+1}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
 daspect([1, 1, 1]);
 view(2);
-quiver3(ICS{t+1}(:, 1), ICS{t+1}(:, 2), ICS{t+1}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
-
-figure;
-hold on;
-colormap(cmap);
-trisurf(F, S{t+2}(:, 1), S{t+2}(:, 2), S{t+2}(:, 3), fd{t+2}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-daspect([1, 1, 1]);
-view(2);
-
-figure;
-hold on;
-colormap(cmap);
-trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), sfd{t+1}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-daspect([1, 1, 1]);
-view(2);
+quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
 
 figure;
 hold on;
@@ -192,10 +178,24 @@ colormap(cmap);
 trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), fd{t+1}, 'EdgeColor', 'none', 'FaceColor', 'interp');
 daspect([1, 1, 1]);
 view(2);
+
 figure;
 hold on;
 colormap(cmap);
-trisurf(F, S{t+2}(:, 1), S{t+2}(:, 2), S{t+2}(:, 3), fd{t+2}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), sfd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+daspect([1, 1, 1]);
+view(2);
+
+figure;
+hold on;
+colormap(cmap);
+trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
+daspect([1, 1, 1]);
+view(2);
+figure;
+hold on;
+colormap(cmap);
+trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), fd{t+1}, 'EdgeColor', 'none', 'FaceColor', 'interp');
 daspect([1, 1, 1]);
 view(2);
 
@@ -211,7 +211,7 @@ col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 % Visualize flow.
 figure;
 hold on;
-trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', col, 'EdgeColor', 'none');
+trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', col, 'EdgeColor', 'none');
 daspect([1, 1, 1]);
 view(3);
 
@@ -231,15 +231,15 @@ col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
 % Visualize flow.
 figure;
 hold on;
-trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', col, 'EdgeColor', 'none');
+trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', col, 'EdgeColor', 'none');
 daspect([1, 1, 1]);
 view(3);
 
 % Compute divergence.
-sdiv = surfdivmem(Ns, cs{t+1}, [el, az], k, h, X, mem)'*ofc;
+sdiv = surfdivmem(Ns, cs{t}, [el, az], k, h, X, mem)'*ofc;
 figure;
 hold on;
-trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', sdiv, 'EdgeColor', 'none');
+trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'FaceColor', 'flat', 'FaceVertexCData', sdiv, 'EdgeColor', 'none');
 daspect([1, 1, 1]);
 view(3);
 
