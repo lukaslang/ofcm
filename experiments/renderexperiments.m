@@ -43,6 +43,15 @@ load(fullfile('data', 'cmapblue.mat'));
 % Specify max. memory for matrix multiplication.
 mem = 3*1024^3;
 
+% Figure parameters.
+zlim = [0, 400];
+xlim = [-400, 400];
+ylim = [-400, 400];
+ztick = -450:150:450;
+xtick = -450:150:450;
+ytick = -450:150:450;
+
+
 % Create triangulation for visualisation purpose.
 [F, V] = halfsphTriang(7);
 [S, rho] = cellfun(@(c) surfsynth(Ns, V, c), cs, 'UniformOutput', false);
@@ -158,20 +167,10 @@ for t=1:length(frames)-1
     figure(1);
     cla;
     colormap(cmap);
-    axis square;
     hold on;
     vol3d('cdata', f{t}, 'XData', scale(2) * [0, 512] - sc(1), 'YData', scale(1) * [0, 512] - sc(2), 'ZData', scale(3) * [0, 44] - sc(3));
-    daspect([1, 1, 1]);
     view(3);
-    set(gca, 'ZLim', [0, 450]);
-    set(gca, 'XLim', [-450, 450]);
-    set(gca, 'YLim', [-450, 450]);
-    set(gca, 'XTick', -450:150:450);
-    set(gca, 'YTick', -450:150:450);
-    set(gca, 'ZTick', -450:150:450);
-    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-    set(gca, 'FontName', 'Helvetica' );
-    set(gca, 'FontSize', 14);
+    adjust3dplot;
     export_fig(fullfile(outputPath, 'raw3', sprintf('raw3-%s-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
     
     % Raw data and surface with data.
@@ -182,20 +181,10 @@ for t=1:length(frames)-1
     figure(1);
     cla;
     colormap(cmap);
-    axis square;
     hold on;
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-    daspect([1, 1, 1]);
     view(3);
-    set(gca, 'ZLim', [0, 450]);
-    set(gca, 'XLim', [-450, 450]);
-    set(gca, 'YLim', [-450, 450]);
-    set(gca, 'XTick', -450:150:450);
-    set(gca, 'YTick', -450:150:450);
-    set(gca, 'ZTick', -450:150:450);
-    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-    set(gca, 'FontName', 'Helvetica' );
-    set(gca, 'FontSize', 14);
+    adjust3dplot;
     export_fig(fullfile(outputPath, 'data3', sprintf('data3-%s-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
 
     % Rotate by pi.
@@ -230,20 +219,10 @@ for t=1:length(frames)-1
     figure(1);
     cla;
     colormap(cmap);
-    axis square;
     hold on;
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), sfd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-    daspect([1, 1, 1]);
     view(2);
-    set(gca, 'ZLim', [0, 450]);
-    set(gca, 'XLim', [-450, 450]);
-    set(gca, 'YLim', [-450, 450]);
-    set(gca, 'XTick', -450:150:450);
-    set(gca, 'YTick', -450:150:450);
-    set(gca, 'ZTick', -450:150:450);
-    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-    set(gca, 'FontName', 'Helvetica' );
-    set(gca, 'FontSize', 14);
+    adjust3dplot;
     export_fig(fullfile(outputPath, 'seg2', sprintf('seg2-%s-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
 end
 close all;
@@ -289,21 +268,11 @@ for t=1:length(frames)-1
     figure(1);
     cla;
     colormap(cmap);
-    axis square;
     hold on;
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
     C = surf(250:449, -449:-250, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-    daspect([1, 1, 1]);
     view(3);
-    set(gca, 'ZLim', [0, 450]);
-    set(gca, 'XLim', [-450, 450]);
-    set(gca, 'YLim', [-450, 450]);
-    set(gca, 'XTick', -450:150:450);
-    set(gca, 'YTick', -450:150:450);
-    set(gca, 'ZTick', -450:150:450);
-    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-    set(gca, 'FontName', 'Helvetica' );
-    set(gca, 'FontSize', 14);
+    adjust3dplot;
     export_fig(fullfile(outputPath, 'surfvel3', sprintf('surfvel3-%s-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
     delete(C);
     
@@ -316,20 +285,10 @@ for t=1:length(frames)-1
     figure(1);
     cla;
     colormap(cmap);
-    axis square;
     hold on;
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', veln{t});
-    daspect([1, 1, 1]);
     view(3);
-    set(gca, 'ZLim', [0, 450]);
-    set(gca, 'XLim', [-450, 450]);
-    set(gca, 'YLim', [-450, 450]);
-    set(gca, 'XTick', -450:150:450);
-    set(gca, 'YTick', -450:150:450);
-    set(gca, 'ZTick', -450:150:450);
-    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-    set(gca, 'FontName', 'Helvetica' );
-    set(gca, 'FontSize', 14);
+    adjust3dplot;
     export_fig(fullfile(outputPath, 'surfveln3', sprintf('surfveln3-%s-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
     
     % Top view.
@@ -341,20 +300,10 @@ for t=1:length(frames)-1
     figure(1);
     cla;
     colormap(cmap);
-    axis square;
     hold on;
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', signednorm{t});
-    daspect([1, 1, 1]);
     view(3);
-    set(gca, 'ZLim', [0, 450]);
-    set(gca, 'XLim', [-450, 450]);
-    set(gca, 'YLim', [-450, 450]);
-    set(gca, 'XTick', -450:150:450);
-    set(gca, 'YTick', -450:150:450);
-    set(gca, 'ZTick', -450:150:450);
-    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-    set(gca, 'FontName', 'Helvetica' );
-    set(gca, 'FontSize', 14);
+    adjust3dplot;
     export_fig(fullfile(outputPath, 'signednormsurfvel3', sprintf('signednorm3-%s-%i-600dpi.png', name, t)), '-png', '-r600', '-transparent', '-a1');
     
     % Top view.
@@ -413,20 +362,10 @@ for t=1:length(frames)-1
         figure(1);
         cla;
         colormap(cmap);
-        axis square;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-        daspect([1, 1, 1]);
         view(3);
-        set(gca, 'ZLim', [0, 450]);
-        set(gca, 'XLim', [-450, 450]);
-        set(gca, 'YLim', [-450, 450]);
-        set(gca, 'XTick', -450:150:450);
-        set(gca, 'YTick', -450:150:450);
-        set(gca, 'ZTick', -450:150:450);
-        set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
+        adjust3dplot;
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
         export_fig(fullfile(outputPath, 'vec3-of', sprintf('vec3-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
 
@@ -450,21 +389,11 @@ for t=1:length(frames)-1
         figure(1);
         cla;
         colormap(cmap);
-        axis square;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
         C = surf(250:449, -449:-250, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        daspect([1, 1, 1]);
         view(3);
-        set(gca, 'ZLim', [0, 450]);
-        set(gca, 'XLim', [-450, 450]);
-        set(gca, 'YLim', [-450, 450]);
-        set(gca, 'XTick', -450:150:450);
-        set(gca, 'YTick', -450:150:450);
-        set(gca, 'ZTick', -450:150:450);
-        set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
+        adjust3dplot;
         export_fig(fullfile(outputPath, 'flow3-of', sprintf('flow3-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
         delete(C);
 
@@ -496,21 +425,11 @@ for t=1:length(frames)-1
         figure(1);
         cla;
         colormap(cmap);
-        axis square;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
         C = surf(250:449, -449:-250, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        daspect([1, 1, 1]);
         view(3);
-        set(gca, 'ZLim', [0, 450]);
-        set(gca, 'XLim', [-450, 450]);
-        set(gca, 'YLim', [-450, 450]);
-        set(gca, 'XTick', -450:150:450);
-        set(gca, 'YTick', -450:150:450);
-        set(gca, 'ZTick', -450:150:450);
-        set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
+        adjust3dplot;
         export_fig(fullfile(outputPath, 'motion3-of', sprintf('motion3-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
         delete(C);
 
@@ -579,20 +498,10 @@ for t=1:length(frames)-1
         figure(1);
         cla;
         colormap(cmap);
-        axis square;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-        daspect([1, 1, 1]);
         view(3);
-        set(gca, 'ZLim', [0, 450]);
-        set(gca, 'XLim', [-450, 450]);
-        set(gca, 'YLim', [-450, 450]);
-        set(gca, 'XTick', -450:150:450);
-        set(gca, 'YTick', -450:150:450);
-        set(gca, 'ZTick', -450:150:450);
-        set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
+        adjust3dplot;
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
         export_fig(fullfile(outputPath, 'vec3-cm', sprintf('vec3-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
 
@@ -616,21 +525,11 @@ for t=1:length(frames)-1
         figure(1);
         cla;
         colormap(cmap);
-        axis square;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
         C = surf(250:449, -449:-250, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        daspect([1, 1, 1]);
         view(3);
-        set(gca, 'ZLim', [0, 450]);
-        set(gca, 'XLim', [-450, 450]);
-        set(gca, 'YLim', [-450, 450]);
-        set(gca, 'XTick', -450:150:450);
-        set(gca, 'YTick', -450:150:450);
-        set(gca, 'ZTick', -450:150:450);
-        set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
+        adjust3dplot;
         export_fig(fullfile(outputPath, 'flow3-cm', sprintf('flow3-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
         delete(C);
 
@@ -662,21 +561,11 @@ for t=1:length(frames)-1
         figure(1);
         cla;
         colormap(cmap);
-        axis square;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
         C = surf(250:449, -449:-250, zeros(200, 200), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        daspect([1, 1, 1]);
         view(3);
-        set(gca, 'ZLim', [0, 450]);
-        set(gca, 'XLim', [-450, 450]);
-        set(gca, 'YLim', [-450, 450]);
-        set(gca, 'XTick', -450:150:450);
-        set(gca, 'YTick', -450:150:450);
-        set(gca, 'ZTick', -450:150:450);
-        set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-        set(gca, 'FontName', 'Helvetica' );
-        set(gca, 'FontSize', 14);
+        adjust3dplot;
         export_fig(fullfile(outputPath, 'motion3-cm', sprintf('motion3-%s-setting-%i-%i-600dpi.png', name, p, t)), '-png', '-r600', '-transparent', '-a1');
         delete(C);
 
@@ -697,3 +586,17 @@ close all;
 
 % Close file.
 fclose(fid);
+
+function adjust3dplot
+    axis square;
+    daspect([1, 1, 1]);
+    set(gca, 'ZLim', zlim);
+    set(gca, 'XLim', xlim);
+    set(gca, 'YLim', ylim);
+    set(gca, 'XTick', xtick);
+    set(gca, 'YTick', ytick);
+    set(gca, 'ZTick', ztick);
+    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
+    set(gca, 'FontName', 'Helvetica' );
+    set(gca, 'FontSize', 14);
+end
