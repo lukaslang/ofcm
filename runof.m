@@ -45,15 +45,15 @@ area = 100;
 % Define surface fitting parameters.
 Ns = 0:10;
 beta0 = 1e-4;
-beta1 = 1;
+beta1 = 10;
 s = 3+eps;
 
 % Set temporal derivative.
 dt = 1;
 
 % Parameters for radial projection of the data.
-bandwidth = [0.8, 1.2];
-layers = 80;
+bandwidth = [0.9, 1.1];
+layers = 40;
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 5;
@@ -118,20 +118,22 @@ N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
 gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation.
-s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
+%s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
+%s = fx;
+s = ones(size(fx, 1), 1);
 
 % Select frame.
 t = 1;
 
 % Compute optimality conditions (cell divisions use gradfx{t+1}, dtfx{t}, fx{t+1}).
-[~, A, D, E, b] = optcond(Ns, cs{t}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, mem);
+[~, A, D, E, b] = optcond(Ns, cs{t}, X, k, h, xi, w, gradfx{t}, dtfx{t}, s{t}, mem);
 
 % Solve linear system.
 ofc = (A + alpha * D + beta * E) \ b;
 fprintf('Relative residual %e.\n', norm((A + alpha * D + beta * E)*ofc - b)/norm(b));
 
 % Create triangulation for visualization purpose.
-[F, V] = halfsphTriang(7);
+[F, V] = halfsphTriang(6);
 [S, ~] = cellfun(@(c) surfsynth(Ns, V, c), cs, 'UniformOutput', false);
 
 % Evaluate data at vertices.
@@ -157,12 +159,10 @@ v = bsxfun(@times, full((bfc1')*ofc), d1{t}) + bsxfun(@times, full((bfc2')*ofc),
 clear bfc1;
 clear bfc2;
 
-% Evaluate data.
-fdic = evaldata(f, scale, ICS, sc, bandwidth, layers);
-%v = bsxfun(@times, v, fdic{1});
-
 % Create segmentation.
-sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
+%sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
+sfd = fd;
+
 
 figure;
 hold on;

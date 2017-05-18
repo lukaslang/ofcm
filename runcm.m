@@ -45,15 +45,15 @@ area = 100;
 % Define surface fitting parameters.
 Ns = 0:10;
 beta0 = 1e-4;
-beta1 = 1;
+beta1 = 10;
 s = 3+eps;
 
 % Set temporal derivative.
 dt = 1;
 
 % Parameters for radial projection of the data.
-bandwidth = [0.8, 1.2];
-layers = 80;
+bandwidth = [0.9, 1.1];
+layers = 40;
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 5;
@@ -119,13 +119,15 @@ N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
 gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation.
-s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
+%s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
+%s = fx;
+s = ones(size(fx, 1), 1);
 
 % Select frame.
 t = 1;
 
 % Compute optimality conditions.
-[~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, fx{t+1}, fx{t+1}, mem);
+[~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, s, mem);
 
 % Solve linear system.
 ofc = (A + alpha * D + beta * E + gamma * G) \ b;
@@ -154,16 +156,13 @@ el = pi/2 - el;
 [d1, d2] = cellfun(@(c) surftanbasis(Ns, c, [el, az]), cs(1:end-1), 'UniformOutput', false);
 
 % Compute pushforward of basis functions.
-v = bsxfun(@times, full((bfc1')*ofc), d1{t+1}) + bsxfun(@times, full((bfc2')*ofc), d2{t+1});
+v = bsxfun(@times, full((bfc1')*ofc), d1{t}) + bsxfun(@times, full((bfc2')*ofc), d2{t});
 clear bfc1;
 clear bfc2;
 
-% Evaluate data.
-fdic = evaldata(f, scale, ICS, sc, bandwidth, layers);
-%v = bsxfun(@times, v, fdic{1});
-
 % Create segmentation.
-sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
+%sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
+sfd = fd;
 
 figure;
 hold on;
