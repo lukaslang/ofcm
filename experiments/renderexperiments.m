@@ -27,10 +27,10 @@ clc;
 name = 'cxcr4aMO2_290112';
 
 % Set datestring of generated data.
-timestamp1 = '2017-05-17-16-56-15';
+timestamp1 = '2017-05-18-14-19-31';
 
 % Set datestring of experiment.
-timestamp2 = '2017-05-17-17-31-26';
+timestamp2 = '2017-05-18-14-37-56';
 
 % Define render quality.
 quality = '-r100';
@@ -73,9 +73,6 @@ xi = [el, az];
 
 % Compute tangent basis.
 [d1, d2] = cellfun(@(c) surftanbasis(Ns, c, xi), cs(1:end-1), 'UniformOutput', false);
-
-% Compute surface divergence of basis functions.
-bfcdiv = cellfun(@(c) surfdivmem(Ns, c, xi, k, h, X, mem), cs, 'UniformOutput', false);
 
 % Create spherical mesh for visualisation and remove poles.
 nsphere = 31;
@@ -342,18 +339,39 @@ close all;
 % Close file.
 fclose(fid);
 
+% Compute surface divergence of basis functions.
+bfcdiv = cellfun(@(c) surfdivmem(Ns, c, xi, k, h, X, mem), cs, 'UniformOutput', false);
+
+% Precompute surface divergence of flow.
+for t=1:length(frames)-1
+    % Load experiment.
+    path = fullfile('results', name, timestamp1);
+    file = fullfile(path, sprintf('%s-coeff-of-%.3i.mat', timestamp2, t));
+    load(file);
+    
+    for p=1:length(c)
+        sdiv{t, p} = bfcdiv{t}'*c{p};
+    end
+end
+
+% Find min and max values of surface divergence for each parameter setting.
+for p=1:length(c)
+    sdivmin{p} = min(min([sdiv{:, p}]));
+    sdivmax{p} = max(max([sdiv{:, p}]));
+end
+
 % Open a file to save flow scaling.
 fid = fopen(fullfile(outputPath, 'velocities-of.txt'), 'w');
 
 % Run through all pairs of frames.
-mkdir(fullfile(outputPath, 'vec2-of'));
-mkdir(fullfile(outputPath, 'vec3-of'));
-mkdir(fullfile(outputPath, 'flow2-of'));
-mkdir(fullfile(outputPath, 'flow3-of'));
-mkdir(fullfile(outputPath, 'motion2-of'));
-mkdir(fullfile(outputPath, 'motion3-of'));
-mkdir(fullfile(outputPath, 'div2-of'));
-mkdir(fullfile(outputPath, 'div3-of'));
+mkdir(fullfile(outputPath, 'of-vec2'));
+mkdir(fullfile(outputPath, 'of-vec3'));
+mkdir(fullfile(outputPath, 'of-flow2'));
+mkdir(fullfile(outputPath, 'of-flow3'));
+mkdir(fullfile(outputPath, 'of-motion2'));
+mkdir(fullfile(outputPath, 'of-motion3'));
+mkdir(fullfile(outputPath, 'of-div2'));
+mkdir(fullfile(outputPath, 'of-div3'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %.3i/%.3i.\n', t, length(frames)-1);
 
@@ -368,12 +386,14 @@ for t=1:length(frames)-1
         
         % Create folder.
         folderstr = sprintf('alpha-%.4f-beta-%.4f', alpha{p}, beta{p});
-        mkdir(fullfile(outputPath, 'vec2-of', folderstr));
-        mkdir(fullfile(outputPath, 'vec3-of', folderstr));
-        mkdir(fullfile(outputPath, 'flow2-of', folderstr));
-        mkdir(fullfile(outputPath, 'flow3-of', folderstr));
-        mkdir(fullfile(outputPath, 'motion2-of', folderstr));
-        mkdir(fullfile(outputPath, 'motion3-of', folderstr));
+        mkdir(fullfile(outputPath, 'of-vec2', folderstr));
+        mkdir(fullfile(outputPath, 'of-vec3', folderstr));
+        mkdir(fullfile(outputPath, 'of-flow2', folderstr));
+        mkdir(fullfile(outputPath, 'of-flow3', folderstr));
+        mkdir(fullfile(outputPath, 'of-motion2', folderstr));
+        mkdir(fullfile(outputPath, 'of-motion3', folderstr));
+        mkdir(fullfile(outputPath, 'of-div2', folderstr));
+        mkdir(fullfile(outputPath, 'of-div3', folderstr));
         
         % Compute pushforward of basis functions.
         v = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
@@ -387,11 +407,11 @@ for t=1:length(frames)-1
         view(3);
         adjust3dplot;
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
-        export_fig(fullfile(outputPath, 'vec3-of', sprintf('vec3-%s-%s-%.3i.png', name, alpha{p}, beta{p}, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-vec3', folderstr, sprintf('vec3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Top view.
         view(2);
-        export_fig(fullfile(outputPath, 'vec2-of', sprintf('vec2-%s-%s-%.3i.png', name, alpha{p}, beta{p}, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-vec2', folderstr, sprintf('vec2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Optical flow vectors scaled.
         figure(1);
@@ -402,11 +422,11 @@ for t=1:length(frames)-1
         view(3);
         adjust3dplot;
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 1, 'r');
-        export_fig(fullfile(outputPath, 'vec3-of', sprintf('vec3-%s-%s-scaled-%.3i.png', name, alpha{p}, beta{p}, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-vec3', folderstr, sprintf('vec3-%s-%s-scaled-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Top view.
         view(2);
-        export_fig(fullfile(outputPath, 'vec2-of', sprintf('vec2-%s-%s-scaled-%.3i.png', name, alpha{p}, beta{p}, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-vec2', folderstr, sprintf('vec2-%s-%s-scaled-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Project and scale flow.
         up = projecttoplane(v);
@@ -429,20 +449,20 @@ for t=1:length(frames)-1
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
-        export_fig(fullfile(outputPath, 'flow3-of', sprintf('flow3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
 
         % Rotate by pi.
         [az, el] = view;
         view(az + 180, el);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'flow3-of', sprintf('flow3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-flow3', folderstr, sprintf('flow3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
         
         % Top view.
         view(2);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'flow2-of', sprintf('flow2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-flow2', folderstr, sprintf('flow2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Recover total velocity.
         up = projecttoplane(vel{t} + v);
@@ -465,37 +485,39 @@ for t=1:length(frames)-1
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
-        export_fig(fullfile(outputPath, 'motion3-of', sprintf('motion3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
 
         % Rotate by pi.
         [az, el] = view;
         view(az + 180, el);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'motion3-of', sprintf('motion3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
         
         % Top view.
         view(2);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'motion2-of', sprintf('motion2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
-        
-        % Compute surface divergence of flow.
-        sdiv = bfcdiv'*c{p};
+        export_fig(fullfile(outputPath, 'of-motion2', folderstr, sprintf('motion2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Plot divergence.
         figure(1);
         cla;
         colormap default;
         hold on;
-        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sdiv);
+        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sdiv{t, p});
         view(3);
         adjust3dplot;
-        export_fig(fullfile(outputPath, 'div3-of', sprintf('div3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        colorbar;
+        if(sdivmax{p} - sdivmin{p} > eps)
+            caxis([sdivmin{p}, sdivmax{p}]);
+        end
+        export_fig(fullfile(outputPath, 'of-div3', folderstr, sprintf('div3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
 
         % Top view.
         view(2);
-        export_fig(fullfile(outputPath, 'div2-of', sprintf('div2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'of-div2', folderstr, sprintf('div2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        close all;
     end
 end
 close all;
@@ -506,19 +528,37 @@ fclose(fid);
 % Open a file to save flow scaling.
 fid = fopen(fullfile(outputPath, 'velocities-cm.txt'), 'w');
 
+% Precompute surface divergence of flow.
+for t=1:length(frames)-1
+    % Load experiment.
+    path = fullfile('results', name, timestamp1);
+    file = fullfile(path, sprintf('%s-coeff-cm-%.3i.mat', timestamp2, t));
+    load(file);
+    
+    for p=1:length(c)
+        sdiv{t, p} = bfcdiv{t}'*c{p};
+    end
+end
+
+% Find min and max values of surface divergence for each parameter setting.
+for p=1:length(c)
+    sdivmin{p} = min(min([sdiv{:, p}]));
+    sdivmax{p} = max(max([sdiv{:, p}]));
+end
+    
 % Run through all pairs of frames.
-mkdir(fullfile(outputPath, 'vec2-cm'));
-mkdir(fullfile(outputPath, 'vec3-cm'));
-mkdir(fullfile(outputPath, 'flow2-cm'));
-mkdir(fullfile(outputPath, 'flow3-cm'));
-mkdir(fullfile(outputPath, 'motion2-cm'));
-mkdir(fullfile(outputPath, 'motion3-cm'));
-mkdir(fullfile(outputPath, 'div2-cm'));
-mkdir(fullfile(outputPath, 'div3-cm'));
+mkdir(fullfile(outputPath, 'cm-vec2'));
+mkdir(fullfile(outputPath, 'cm-vec3'));
+mkdir(fullfile(outputPath, 'cm-flow2'));
+mkdir(fullfile(outputPath, 'cm-flow3'));
+mkdir(fullfile(outputPath, 'cm-motion2'));
+mkdir(fullfile(outputPath, 'cm-motion3'));
+mkdir(fullfile(outputPath, 'cm-div2'));
+mkdir(fullfile(outputPath, 'cm-div3'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %.3i/%.3i.\n', t, length(frames)-1);
 
-     % Load experiment.
+    % Load experiment.
     path = fullfile('results', name, timestamp1);
     file = fullfile(path, sprintf('%s-coeff-cm-%.3i.mat', timestamp2, t));
     load(file);
@@ -529,12 +569,14 @@ for t=1:length(frames)-1
         
         % Create folder.
         folderstr = sprintf('alpha-%.4f-beta-%.4f-gamma-%.4f', alpha{p}, beta{p}, gamma{p});
-        mkdir(fullfile(outputPath, 'vec2-cm', folderstr));
-        mkdir(fullfile(outputPath, 'vec3-cm', folderstr));
-        mkdir(fullfile(outputPath, 'flow2-cm', folderstr));
-        mkdir(fullfile(outputPath, 'flow3-cm', folderstr));
-        mkdir(fullfile(outputPath, 'motion2-cm', folderstr));
-        mkdir(fullfile(outputPath, 'motion3-cm', folderstr));
+        mkdir(fullfile(outputPath, 'cm-vec2', folderstr));
+        mkdir(fullfile(outputPath, 'cm-vec3', folderstr));
+        mkdir(fullfile(outputPath, 'cm-flow2', folderstr));
+        mkdir(fullfile(outputPath, 'cm-flow3', folderstr));
+        mkdir(fullfile(outputPath, 'cm-motion2', folderstr));
+        mkdir(fullfile(outputPath, 'cm-motion3', folderstr));
+        mkdir(fullfile(outputPath, 'cm-div2', folderstr));
+        mkdir(fullfile(outputPath, 'cm-div3', folderstr));
         
         % Compute pushforward of basis functions.
         u = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
@@ -548,11 +590,11 @@ for t=1:length(frames)-1
         view(3);
         adjust3dplot;
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), u(:, 1), u(:, 2), u(:, 3), 0, 'r');
-        export_fig(fullfile(outputPath, 'vec3-cm', sprintf('vec3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-vec3', folderstr, sprintf('vec3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
 
         % Top view.
         view(2);
-        export_fig(fullfile(outputPath, 'vec2-cm', sprintf('vec2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-vec2', folderstr, sprintf('vec2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Optical flow vectors scaled.
         figure(1);
@@ -563,11 +605,11 @@ for t=1:length(frames)-1
         view(3);
         adjust3dplot;
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), u(:, 1), u(:, 2), u(:, 3), 1, 'r');
-        export_fig(fullfile(outputPath, 'vec3-cm', sprintf('vec3-%s-%s-scaled-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-vec3', folderstr, sprintf('vec3-%s-%s-scaled-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
 
         % Top view.
         view(2);
-        export_fig(fullfile(outputPath, 'vec2-cm', sprintf('vec2-%s-%s-scaled-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-vec2', folderstr, sprintf('vec2-%s-%s-scaled-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Project and scale flow.
         up = projecttoplane(u);
@@ -590,20 +632,20 @@ for t=1:length(frames)-1
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
-        export_fig(fullfile(outputPath, 'flow3-cm', sprintf('flow3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
 
         % Rotate by pi.
         [az, el] = view;
         view(az + 180, el);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'flow3-cm', sprintf('flow3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-flow3', folderstr, sprintf('flow3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
         
         % Top view.
         view(2);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'flow2-cm', sprintf('flow2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-flow2', folderstr, sprintf('flow2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Recover total velocity.
         up = projecttoplane(veln{t} .* N{t} + u);
@@ -626,53 +668,42 @@ for t=1:length(frames)-1
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
-        export_fig(fullfile(outputPath, 'motion3-cm', sprintf('motion3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
 
         % Rotate by pi.
         [az, el] = view;
         view(az + 180, el);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'motion3-cm', sprintf('motion3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-motion3', folderstr, sprintf('motion3-%s-%s-rotated-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         delete(C);
         
         % Top view.
         view(2);
         C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'motion2-cm', sprintf('motion2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
-        
-        % Compute surface divergence of flow.
-        sdiv = bfcdiv'*c{p};
+        export_fig(fullfile(outputPath, 'cm-motion2', folderstr, sprintf('motion2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
         
         % Plot divergence.
         figure(1);
         cla;
         colormap default;
         hold on;
-        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sdiv);
+        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sdiv{t, p});
         view(3);
         adjust3dplot;
-        export_fig(fullfile(outputPath, 'div3-cm', sprintf('div3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        colorbar;
+        if(sdivmax{p} - sdivmin{p} > eps)
+            caxis([sdivmin{p}, sdivmax{p}]);
+        end
+        export_fig(fullfile(outputPath, 'cm-div3', folderstr, sprintf('div3-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
 
         % Top view.
         view(2);
-        export_fig(fullfile(outputPath, 'div2-cm', sprintf('div2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        export_fig(fullfile(outputPath, 'cm-div2', folderstr, sprintf('div2-%s-%s-%.3i.png', name, folderstr, t)), '-png', quality, '-transparent', '-a1');
+        close all;
     end
 end
 close all;
 
 % Close file.
 fclose(fid);
-
-function adjust3dplot
-    daspect([1, 1, 1]);
-    set(gca, 'ZLim', [0, 420]);
-    set(gca, 'XLim', [-400, 400]);
-    set(gca, 'YLim', [-400, 400]);
-    set(gca, 'XTick', -450:150:450);
-    set(gca, 'YTick', -450:150:450);
-    set(gca, 'ZTick', -450:150:450);
-    set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [.02 .02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
-    set(gca, 'FontName', 'Helvetica' );
-    set(gca, 'FontSize', 14);
-end

@@ -2,3 +2,6 @@
 *.png
 *.mexw64
 *.mat
+*.txt
+.DS_Store
+._.DS_Store
