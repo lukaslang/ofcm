@@ -133,12 +133,12 @@ seg = fx;
 save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'C', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'seg', '-v7.3');
 
 % Run through all pair of frames.
-for t=1:length(frames)-1
+for t=1:length(frames)-2
     fprintf('Computing optimality conditions %i/%i.\n', t, length(frames)-1);
     
     % Compute optimality conditions.
     timerVal = tic;
-    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
+    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t+1}, cs{t+2}, X, k, h, xi, w, gradfx{t+1}, dtfx{t}, fx{t+1}, seg{t+1}, mem);
     elapsed = toc(timerVal);
     fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     
