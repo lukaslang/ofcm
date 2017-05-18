@@ -27,10 +27,10 @@ clc;
 name = 'cxcr4aMO2_290112';
 
 % Set datestring of generated data.
-timestamp1 = '2017-05-18-14-19-31';
+timestamp1 = '2017-05-18-16-50-38';
 
 % Set datestring of experiment.
-timestamp2 = '2017-05-18-14-37-56';
+timestamp2 = '2017-05-18-17-02-32';
 
 % Define render quality.
 quality = '-r100';
