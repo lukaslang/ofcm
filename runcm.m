@@ -66,9 +66,9 @@ h = 0.99;
 deg = 400;
 
 % Set regularisation parameter.
-alpha = 0.01;
+alpha = 0.05;
 beta = 0.001;
-gamma = 0.1;
+gamma = 0.005;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
@@ -120,21 +120,21 @@ gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation.
 %s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
-%s = fx;
-s = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
+s = fx;
+%s = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
 
 % Select frame.
 t = 1;
 
 % Compute optimality conditions.
-[~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, s, mem);
+[~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, s{t}, mem);
 
 % Solve linear system.
 ofc = (A + alpha * D + beta * E + gamma * G) \ b;
 fprintf('Relative residual %e.\n', norm((A + alpha * D + beta * E + gamma * G)*ofc - b)/norm(b));
 
 % Create triangulation for visualization purpose.
-[F, V] = halfsphTriang(7);
+[F, V] = halfsphTriang(6);
 [S, ~] = cellfun(@(c) surfsynth(Ns, V, c), cs, 'UniformOutput', false);
 
 % Evaluate data at vertices.

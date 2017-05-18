@@ -67,7 +67,7 @@ deg = 400;
 
 % Set regularisation parameter.
 alpha = 0.01;
-beta = 0.005;
+beta = 0.001;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
@@ -119,8 +119,8 @@ gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation.
 %s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
-%s = fx;
-s = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
+s = fx;
+%s = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
 
 % Select frame.
 t = 1;
@@ -171,13 +171,6 @@ trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'Face
 daspect([1, 1, 1]);
 view(2);
 quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v(:, 1), v(:, 2), v(:, 3), 0, 'r');
-
-figure;
-hold on;
-colormap(cmap);
-trisurf(F, S{t+1}(:, 1), S{t+1}(:, 2), S{t+1}(:, 3), fd{t+1}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-daspect([1, 1, 1]);
-view(2);
 
 figure;
 hold on;
