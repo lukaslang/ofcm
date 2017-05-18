@@ -32,7 +32,7 @@ file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
 %frames = 112:115;
-frames = 110:115;
+frames = 110:120;
 %frames = 100:130;
 
 % Create start date and time.
@@ -56,15 +56,15 @@ area = 100;
 % Define surface fitting parameters.
 Ns = 0:10;
 beta0 = 1e-4;
-beta1 = 1;
+beta1 = 10;
 s = 3+eps;
 
 % Set temporal derivative.
 dt = 1;
 
 % Parameters for radial projection of the data.
-bandwidth = [0.8, 1.2];
-layers = 80;
+bandwidth = [0.9, 1.1];
+layers = 40;
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 5;
@@ -130,7 +130,7 @@ seg = fx;
 %seg = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
 
 % Save data and parameters.
-save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'seg', '-v7.3');
+save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'C', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'seg', '-v7.3');
 
 % Run through all pair of frames.
 for t=1:length(frames)-1

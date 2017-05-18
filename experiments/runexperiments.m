@@ -110,5 +110,5 @@ for t=1:length(frames)-1
     end
     
     % Save experiments.
-    save(fullfile(path, timestamp, sprintf('%s-coeff-cm-%.3i.mat', startdate, t)), 'c', 'L', 'alpha', 'beta', '-v7.3');
+    save(fullfile(path, timestamp, sprintf('%s-coeff-cm-%.3i.mat', startdate, t)), 'c', 'L', 'alpha', 'beta', 'gamma', '-v7.3');
 end
