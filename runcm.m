@@ -121,7 +121,7 @@ gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 % Create segmentation.
 %s = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
 %s = fx;
-s = ones(size(fx, 1), 1);
+s = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
 
 % Select frame.
 t = 1;
