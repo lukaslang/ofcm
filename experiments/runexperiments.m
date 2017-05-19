@@ -62,7 +62,7 @@ for t=1:length(frames)-1
     fprintf('Solving linear system for OF %i/%i.\n', t, length(frames)-1);
     
     % Load linear systems.
-    load(fullfile(path, sprintf('%s-linsys-%.3i.mat', timestamp, t)), 'Aof', 'D', 'E', 'bof');
+    load(fullfile(path, sprintf('%s-linsys-%.3i.mat', timestamp, frames(t))), 'Aof', 'D', 'E', 'bof');
     
     % Run through parameter settings.
     for p=1:length(alpha)
@@ -76,7 +76,7 @@ for t=1:length(frames)-1
     end
     
     % Save experiments.
-    save(fullfile(path, timestamp, sprintf('%s-coeff-of-%.3i.mat', startdate, t)), 'c', 'L', 'alpha', 'beta', '-v7.3');
+    save(fullfile(path, timestamp, sprintf('%s-coeff-of-%.3i.mat', startdate, frames(t))), 'c', 'L', 'alpha', 'beta', '-v7.3');
 end
 
 %% Run experiments for mass conservation.
@@ -96,7 +96,7 @@ for t=1:length(frames)-1
     fprintf('Solving linear system for CM %i/%i.\n', t, length(frames)-1);
     
     % Load linear systems.
-    load(fullfile(path, sprintf('%s-linsys-%.3i.mat', timestamp, t)), 'Acm', 'D', 'E', 'G', 'bcm');
+    load(fullfile(path, sprintf('%s-linsys-%.3i.mat', timestamp, frames(t))), 'Acm', 'D', 'E', 'G', 'bcm');
     
     % Run through parameter settings.
     for p=1:length(alpha)
@@ -110,5 +110,5 @@ for t=1:length(frames)-1
     end
     
     % Save experiments.
-    save(fullfile(path, timestamp, sprintf('%s-coeff-cm-%.3i.mat', startdate, t)), 'c', 'L', 'alpha', 'beta', 'gamma', '-v7.3');
+    save(fullfile(path, timestamp, sprintf('%s-coeff-cm-%.3i.mat', startdate, frames(t))), 'c', 'L', 'alpha', 'beta', 'gamma', '-v7.3');
 end

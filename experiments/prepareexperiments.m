@@ -144,5 +144,5 @@ for t=1:length(frames)-1
     fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     
     % Save linear systems.
-    save(fullfile(outputPath, sprintf('%s-linsys-%.3i.mat', startdate, t)), 'Aof', 'Acm', 'D', 'E', 'G', 'bof', 'bcm', '-v7.3');
+    save(fullfile(outputPath, sprintf('%s-linsys-%.3i.mat', startdate, frames(t))), 'Aof', 'Acm', 'D', 'E', 'G', 'bof', 'bcm', '-v7.3');
 end
