@@ -55,7 +55,7 @@ threshold = 80;
 area = 100;
 
 % Define surface fitting parameters.
-Ns = 0:20;
+Ns = 0:10;
 beta0 = 1e-4;
 beta1 = 10;
 s = 3+eps;
