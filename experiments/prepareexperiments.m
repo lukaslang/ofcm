@@ -32,8 +32,9 @@ file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
 %frames = 112:115;
-frames = 110:120;
+%frames = 110:120;
 %frames = 100:130;
+frames = 51:151;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -54,7 +55,7 @@ threshold = 80;
 area = 100;
 
 % Define surface fitting parameters.
-Ns = 0:10;
+Ns = 0:20;
 beta0 = 1e-4;
 beta1 = 10;
 s = 3+eps;
@@ -74,7 +75,7 @@ k = 3;
 h = 0.99;
 
 % Define degree of integration.
-deg = 400;
+deg = 600;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
