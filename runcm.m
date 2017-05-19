@@ -63,7 +63,7 @@ k = 3;
 h = 0.99;
 
 % Define degree of integration.
-deg = 400;
+deg = 600;
 
 % Set regularisation parameter.
 alpha = 0.05;
@@ -157,8 +157,6 @@ el = pi/2 - el;
 
 % Compute pushforward of basis functions.
 v = bsxfun(@times, full((bfc1')*ofc), d1{t}) + bsxfun(@times, full((bfc2')*ofc), d2{t});
-clear bfc1;
-clear bfc2;
 
 % Create segmentation.
 %sfd = cellfun(@(x) double(im2bw(x, graythresh(x))), fd, 'UniformOutput', false);
