@@ -63,7 +63,7 @@ k = 3;
 h = 0.99;
 
 % Define degree of integration.
-deg = 600;
+deg = 400;
 
 % Set regularisation parameter.
 alpha = 0.01;

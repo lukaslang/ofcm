@@ -110,7 +110,6 @@ close all;
 
 % Plot rho.
 mkdir(fullfile(outputPath, 'rho2'));
-mkdir(fullfile(outputPath, 'rho3'));
 for t=1:length(frames)
     % Plot function rho on the unit sphere.
     figure(1);
@@ -119,7 +118,6 @@ for t=1:length(frames)
     hold on;
     trisurf(F, V(:, 1), V(:, 2), V(:, 3), rho{t}, 'EdgeColor', 'none');
     shading interp;
-    view(3);
     set(gca, 'ZLim', [0, 1]);
     set(gca, 'XLim', [-1, 1]);
     set(gca, 'YLim', [-1, 1]);
@@ -136,14 +134,6 @@ for t=1:length(frames)
     cbar = findobj(figure(1), 'tag', 'Colorbar');
     set(cbar, 'YTick', 280:20:460);
     set(cbar, 'TickLength', 0.02, 'YColor', [0, 0, 0]);
-    export_fig(fullfile(outputPath, 'rho3', sprintf('rho3-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
-
-    % Rotate by pi.
-    [az, el] = view;
-    view(az + 180, el);
-    export_fig(fullfile(outputPath, 'rho3', sprintf('rho3-%s-rotated-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
-
-    % Top view.
     view(2);
     export_fig(fullfile(outputPath, 'rho2', sprintf('rho2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
 end
@@ -168,6 +158,10 @@ for t=1:length(frames)
     % Raw data and surface with data.
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
     export_fig(fullfile(outputPath, 'raw3', sprintf('raw3-%s-surf-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
+    
+    % Add grid.
+    surf(Xm{t}, Ym{t}, Zm{t}, ones(nsphere-2, nsphere), 'EdgeColor', [0.7, 0.7, 0.7], 'FaceColor', 'none', 'FaceAlpha', 1, 'EdgeAlpha', 1);
+    export_fig(fullfile(outputPath, 'raw3', sprintf('raw3-%s-surf-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
     
     % Cross-section of narrow band.
     figure(1);
@@ -197,11 +191,6 @@ for t=1:length(frames)
     adjust3dplot;
     export_fig(fullfile(outputPath, 'data3', sprintf('data3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
 
-    % Rotate by pi.
-    [az, el] = view;
-    view(az + 180, el);
-    export_fig(fullfile(outputPath, 'data3', sprintf('data3-%s-rotated-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
-
     % Top view.
     view(2);
     export_fig(fullfile(outputPath, 'data2', sprintf('data2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -211,11 +200,6 @@ for t=1:length(frames)
     surf(Xm{t}, Ym{t}, Zm{t}, ones(nsphere-2, nsphere), 'EdgeColor', [0.7, 0.7, 0.7], 'FaceColor', 'none', 'FaceAlpha', 1, 'EdgeAlpha', 1);
     export_fig(fullfile(outputPath, 'data3', sprintf('data3-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
     
-    % Rotate by pi.
-    [az, el] = view;
-    view(az + 180, el);
-    export_fig(fullfile(outputPath, 'data3', sprintf('data3-%s-grid-rotated-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
-
     % Top view.
     view(2);
     export_fig(fullfile(outputPath, 'data2', sprintf('data2-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -355,6 +339,9 @@ for t=1:length(frames)-1
         
         % Compute flow.
         v{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
+        
+        % Compute norm of flow.
+        vnorm{t, p} = sqrt(sum(v{t, p}.^2, 2));
     end
 end
 
@@ -362,8 +349,8 @@ end
 for p=1:length(c)
     sdivmin{p} = min(min([sdiv{:, p}]));
     sdivmax{p} = max(max([sdiv{:, p}]));
-    vmin{p} = min(min([v{:, p}]));
-    vmax{p} = max(max([v{:, p}]));
+    vmin{p} = min(min([vnorm{:, p}]));
+    vmax{p} = max(max([vnorm{:, p}]));
 end
 
 % Open a file to save flow scaling.
@@ -378,7 +365,6 @@ mkdir(fullfile(outputPath, 'of-flowmagn2'));
 mkdir(fullfile(outputPath, 'of-motion2'));
 mkdir(fullfile(outputPath, 'of-motion3'));
 mkdir(fullfile(outputPath, 'of-div2'));
-mkdir(fullfile(outputPath, 'of-div3'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %.3i/%.3i.\n', t, length(frames)-1);
 
@@ -401,7 +387,6 @@ for t=1:length(frames)-1
         mkdir(fullfile(outputPath, 'of-motion2', folderstr));
         mkdir(fullfile(outputPath, 'of-motion3', folderstr));
         mkdir(fullfile(outputPath, 'of-div2', folderstr));
-        mkdir(fullfile(outputPath, 'of-div3', folderstr));
         
         % Optical flow vectors.
         figure(1);
@@ -440,7 +425,7 @@ for t=1:length(frames)-1
         nmax = max(sqrt(sum(up.^2, 2)));
 
         % Save flow scaling.
-        fprintf(fid, 'Frame %.3i, alpha=%.4f, beta=%.4f: w=%.4g,\t proj(w)=%.4g,\t ', frames(t), alpha{p}, beta{p}, max(sqrt(sum(v.^2, 2))), nmax);
+        fprintf(fid, 'Frame %.3i, alpha=%.4f, beta=%.4f: w=%.4g,\t proj(w)=%.4g,\t ', frames(t), alpha{p}, beta{p}, max(sqrt(sum(v{t, p}.^2, 2))), nmax);
     
         % Compute colour of projection.
         col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
@@ -455,13 +440,6 @@ for t=1:length(frames)-1
         view(3);
         adjust3dplot;
         export_fig(fullfile(outputPath, 'of-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        delete(C);
-
-        % Rotate by pi.
-        [az, el] = view;
-        view(az + 180, el);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'of-flow3', folderstr, sprintf('flow3-%s-%s-rotated-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         delete(C);
         
         % Top view.
@@ -507,13 +485,6 @@ for t=1:length(frames)-1
         adjust3dplot;
         export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         delete(C);
-
-        % Rotate by pi.
-        [az, el] = view;
-        view(az + 180, el);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-rotated-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        delete(C);
         
         % Top view.
         view(2);
@@ -526,16 +497,12 @@ for t=1:length(frames)-1
         colormap default;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sdiv{t, p});
-        view(3);
+        view(2);
         adjust3dplot;
         colorbar;
         if(sdivmax{p} - sdivmin{p} > eps)
             caxis([sdivmin{p}, sdivmax{p}]);
         end
-        export_fig(fullfile(outputPath, 'of-div3', folderstr, sprintf('div3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-        % Top view.
-        view(2);
         export_fig(fullfile(outputPath, 'of-div2', folderstr, sprintf('div2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         close all;
     end
@@ -547,7 +514,6 @@ fclose(fid);
 
 % Open a file to save flow scaling.
 fid = fopen(fullfile(outputPath, 'velocities-cm.txt'), 'w');
-
 
 % Precompute.
 for t=1:length(frames)-1
@@ -562,6 +528,9 @@ for t=1:length(frames)-1
         
         % Compute flow.
         u{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
+        
+        % Compute norm of flow.
+        unorm{t, p} = sqrt(sum(u{t, p}.^2, 2));
     end
 end
 
@@ -569,8 +538,8 @@ end
 for p=1:length(c)
     sdivmin{p} = min(min([sdiv{:, p}]));
     sdivmax{p} = max(max([sdiv{:, p}]));
-    umin{p} = min(min([u{:, p}]));
-    umax{p} = max(max([u{:, p}]));
+    umin{p} = min(min([unorm{:, p}]));
+    umax{p} = max(max([unorm{:, p}]));
 end
     
 % Run through all pairs of frames.
@@ -582,7 +551,6 @@ mkdir(fullfile(outputPath, 'cm-flowmagn2'));
 mkdir(fullfile(outputPath, 'cm-motion2'));
 mkdir(fullfile(outputPath, 'cm-motion3'));
 mkdir(fullfile(outputPath, 'cm-div2'));
-mkdir(fullfile(outputPath, 'cm-div3'));
 for t=1:length(frames)-1
     fprintf('Rendering frame %.3i/%.3i.\n', t, length(frames)-1);
 
@@ -605,7 +573,6 @@ for t=1:length(frames)-1
         mkdir(fullfile(outputPath, 'cm-motion2', folderstr));
         mkdir(fullfile(outputPath, 'cm-motion3', folderstr));
         mkdir(fullfile(outputPath, 'cm-div2', folderstr));
-        mkdir(fullfile(outputPath, 'cm-div3', folderstr));
         
         % Optical flow vectors.
         figure(1);
@@ -660,13 +627,6 @@ for t=1:length(frames)-1
         adjust3dplot;
         export_fig(fullfile(outputPath, 'cm-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         delete(C);
-
-        % Rotate by pi.
-        [az, el] = view;
-        view(az + 180, el);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'cm-flow3', folderstr, sprintf('flow3-%s-%s-rotated-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        delete(C);
         
         % Top view.
         view(2);
@@ -678,7 +638,7 @@ for t=1:length(frames)-1
         cla;
         colormap default;
         hold on;
-        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sqrt(sum(v{t, p}.^2, 2)));
+        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sqrt(sum(u{t, p}.^2, 2)));
         view(2);
         adjust3dplot;
         colorbar;
@@ -711,13 +671,6 @@ for t=1:length(frames)-1
         adjust3dplot;
         export_fig(fullfile(outputPath, 'cm-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         delete(C);
-
-        % Rotate by pi.
-        [az, el] = view;
-        view(az + 180, el);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-        export_fig(fullfile(outputPath, 'cm-motion3', folderstr, sprintf('motion3-%s-%s-rotated-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        delete(C);
         
         % Top view.
         view(2);
@@ -730,16 +683,12 @@ for t=1:length(frames)-1
         colormap default;
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sdiv{t, p});
-        view(3);
+        view(2);
         adjust3dplot;
         colorbar;
         if(sdivmax{p} - sdivmin{p} > eps)
             caxis([sdivmin{p}, sdivmax{p}]);
         end
-        export_fig(fullfile(outputPath, 'cm-div3', folderstr, sprintf('div3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-        % Top view.
-        view(2);
         export_fig(fullfile(outputPath, 'cm-div2', folderstr, sprintf('div2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         close all;
     end
