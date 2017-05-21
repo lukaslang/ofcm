@@ -33,7 +33,7 @@ timestamp1 = '2017-05-19-14-37-42';
 timestamp2 = '2017-05-19-21-38-04';
 
 % Define render quality.
-quality = '-r100';
+quality = '-r300';
 
 % Load data.
 path = fullfile('results', name);
@@ -47,7 +47,7 @@ load(fullfile('data', 'cmapblue.mat'));
 mem = 3*1024^3;
 
 % Create triangulation for visualisation purpose.
-[F, V] = halfsphTriang(6);
+[F, V] = halfsphTriang(7);
 [S, rho] = cellfun(@(c) surfsynth(Ns, V, c), cs, 'UniformOutput', false);
 
 % Evaluate data at vertices.
