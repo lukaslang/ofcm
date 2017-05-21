@@ -44,7 +44,7 @@ load(file);
 load(fullfile('data', 'cmapblue.mat'));
 
 % Specify max. memory for matrix multiplication.
-mem = 3*1024^3;
+mem = 8*1024^3;
 
 % Create triangulation for visualisation purpose.
 [F, V] = halfsphTriang(7);
@@ -92,8 +92,8 @@ Ym = cellfun(@(x) reshape(x(:, 2), nsphere-2, nsphere), Vm, 'UniformOutput', fal
 Zm = cellfun(@(x) reshape(x(:, 3), nsphere-2, nsphere), Vm, 'UniformOutput', false);
 
 % Find min and max values of rho.
-rhomin = min(min([rho{:}]));
-rhomax = max(max([rho{:}]));
+rhomin = min(min([rho{:}], [], 2));
+rhomax = max(max([rho{:}], [], 2));
 
 % Create output folders.
 outputPath = fullfile('results', name, timestamp1, timestamp2);
@@ -226,25 +226,29 @@ N = cellfun(@(c) surfnormals(Ns, c, xi), cs(1:end-1), 'UniformOutput', false);
 
 % Compute surface velocity.
 [~, dtrho] = cellfun(@(x, y) surfsynth(Ns, IC, (y - x) / dt), cs(1:end - 1), cs(2:end), 'UniformOutput', false);
-vel = cellfun(@(x) x .* IC, dtrho, 'UniformOutput', false);
+Vs = cellfun(@(x) x .* IC, dtrho, 'UniformOutput', false);
+Vsnorm = cellfun(@(x) max(sqrt(sum(x.^2, 2))), Vs, 'UniformOutput', false);
+Vsmax = max([Vsnorm{:}]);
+
+% Project surface velocity and compute max norm.
+Vsp = cellfun(@(x) projecttoplane(x), Vs, 'UniformOutput', false);
+Vspnorm = cellfun(@(x) max(sqrt(sum(x.^2, 2))), Vsp, 'UniformOutput', false);
+Vspmax = max([Vspnorm{:}]);
 
 % Compute scalar normal part of surface velocity.
-veln = cellfun(@(x, y) dot(x, y, 2), vel, N, 'UniformOutput', false);
+Vsn = cellfun(@(x, y) dot(x, y, 2), Vs, N, 'UniformOutput', false);
 
 % Find min and max values of veln.
-velnmin = min(min([veln{:}]));
-velnmax = max(max([veln{:}]));
+Vsnmin = min(min([Vsn{:}], [], 2));
+Vsnmax = max(max([Vsn{:}], [], 2));
 
 % Compute signed norm.
-signednorm = cellfun(@(x, y) sign(x) .* sqrt(sum(y.^2, 2)), dtrho, vel, 'UniformOutput', false);
+signednorm = cellfun(@(x, y) sign(x) .* sqrt(sum(y.^2, 2)), dtrho, Vs, 'UniformOutput', false);
 
 % Find min and max values of signednorm.
-signednormmin = min(min([signednorm{:}]));
-signednormmax = max(max([signednorm{:}]));
+signednormmin = min(min([signednorm{:}], [], 2));
+signednormmax = max(max([signednorm{:}], [], 2));
 
-% Open a file to save surface velocity.
-fid = fopen(fullfile(outputPath, 'velocities-surface.txt'), 'w');
-    
 % Plot surface velocity.
 mkdir(fullfile(outputPath, 'surfvel2'));
 mkdir(fullfile(outputPath, 'surfvel3'));
@@ -253,25 +257,16 @@ mkdir(fullfile(outputPath, 'surfveln3'));
 mkdir(fullfile(outputPath, 'signednormsurfvel2'));
 mkdir(fullfile(outputPath, 'signednormsurfvel3'));
 for t=1:length(frames)-1
-    
-    % Project and scale.
-    up = projecttoplane(vel{t});
 
-    % Compute colour space scaling.
-    nmax = max(sqrt(sum(up.^2, 2)));
-
-    % Save flow scaling.
-    fprintf(fid, 'Frame %.3i: V=%.4g,\t Vn=%.4g,\t proj(V)=%.4g\n', frames(t), max(sqrt(sum(vel{t}.^2, 2))), max(sqrt(sum(veln{t}.^2, 2))), nmax);
-    
     % Compute colour of projection.
-    col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
+    col = double(squeeze(computeColour(Vsp{t}(:, 1)/Vspmax, Vsp{t}(:, 2)/Vspmax))) ./ 255;
 
     % Surface velocity.
     figure(1);
     cla;
     hold on;
     trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-    C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+    C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
     view(3);
     adjust3dplot;
     export_fig(fullfile(outputPath, 'surfvel3', sprintf('surfvel3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -279,18 +274,18 @@ for t=1:length(frames)-1
     
     % Top view.
     view(2);
-    C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+    C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
     export_fig(fullfile(outputPath, 'surfvel2', sprintf('surfvel2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
 
     % Normal part.
     figure(1);
     cla;
     hold on;
-    trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', veln{t});
+    trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', Vsn{t});
     view(3);
     colorbar;
-    if(velnmax - velnmin > eps)
-        caxis([velnmin, velnmax]);
+    if(Vsnmax - Vsnmin > eps)
+        caxis([Vsnmin, Vsnmax]);
     end
     adjust3dplot;
     export_fig(fullfile(outputPath, 'surfveln3', sprintf('surfveln3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -320,9 +315,6 @@ for t=1:length(frames)-1
 end
 close all;
 
-% Close file.
-fclose(fid);
-
 % Compute surface divergence of basis functions.
 bfcdiv = cellfun(@(c) surfdivmem(Ns, c, xi, k, h, X, mem), cs, 'UniformOutput', false);
 
@@ -338,27 +330,50 @@ for t=1:length(frames)-1
         sdiv{t, p} = bfcdiv{t}'*c{p};
         
         % Compute flow.
-        v{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
+        w{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
         
         % Compute norm of flow.
-        vnorm{t, p} = sqrt(sum(v{t, p}.^2, 2));
+        wnorm{t, p} = sqrt(sum(w{t, p}.^2, 2));
+        
+        % Project and scale flow.
+        wp{t, p} = projecttoplane(w{t, p});
+
+        % Compute colour space scaling.
+        wpnorm{t, p} = sqrt(sum(wp{t, p}.^2, 2));
+        
+        % Recover total velocity.
+        U{t, p} = Vs{t} + w{t, p};
+        Unorm{t, p} = sqrt(sum(U{t, p}.^2, 2));
+        
+        % Project and scale flow.
+        Up{t, p} = projecttoplane(U{t, p});
+        Upnorm{t, p} = sqrt(sum(Up{t, p}.^2, 2));
     end
 end
 
 % Find min and max values.
 for p=1:length(c)
-    sdivmin{p} = min(min([sdiv{:, p}]));
-    sdivmax{p} = max(max([sdiv{:, p}]));
-    vmin{p} = min(min([vnorm{:, p}]));
-    vmax{p} = max(max([vnorm{:, p}]));
+    sdivmin{p} = min(min([sdiv{:, p}], [], 2));
+    sdivmax{p} = max(max([sdiv{:, p}], [], 2));
+    wmin{p} = min(min([wnorm{:, p}], [], 2));
+    wmax{p} = max(max([wnorm{:, p}], [], 2));
+    wpmax{p} = max(max([wpnorm{:, p}], [], 2));
+    Umax{p} = max(max([Unorm{:, p}], [], 2));
+    Upmax{p} = max(max([Upnorm{:, p}], [], 2));
 end
 
 % Open a file to save flow scaling.
 fid = fopen(fullfile(outputPath, 'velocities-of.txt'), 'w');
+fprintf(fid, 'max(V)=%.4g, max(proj(V))=%.4g\n', Vsmax, Vspmax);
+
+% Save flow scaling for each experiment.
+for p=1:length(c)
+    fprintf(fid, 'alpha=%.4g, beta=%.4g: max(w)=%.4g, max(proj(w))=%.4g, max(V+w)=%.4g, max(proj(V+w))=%.4g, divmax(w)=%.4g\n', alpha{p}, beta{p}, wmax{p}, wpmax{p}, Umax{p}, Upmax{p}, sdivmax{p});
+end
+fclose(fid);
 
 % Run through all pairs of frames.
 mkdir(fullfile(outputPath, 'of-vec2'));
-mkdir(fullfile(outputPath, 'of-vec3'));
 mkdir(fullfile(outputPath, 'of-flow2'));
 mkdir(fullfile(outputPath, 'of-flow3'));
 mkdir(fullfile(outputPath, 'of-flowmagn2'));
@@ -378,9 +393,8 @@ for t=1:length(frames)-1
         fprintf('Parameter setting %.3i/%.3i.\n', p, length(c));
         
         % Create folder.
-        folderstr = sprintf('alpha-%.4f-beta-%.4f', alpha{p}, beta{p});
+        folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha{p}, beta{p});
         mkdir(fullfile(outputPath, 'of-vec2', folderstr));
-        mkdir(fullfile(outputPath, 'of-vec3', folderstr));
         mkdir(fullfile(outputPath, 'of-flow2', folderstr));
         mkdir(fullfile(outputPath, 'of-flow3', folderstr));
         mkdir(fullfile(outputPath, 'of-flowmagn2', folderstr));
@@ -394,41 +408,13 @@ for t=1:length(frames)-1
         colormap(cmap);
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-        view(3);
-        adjust3dplot;
-        quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v{t, p}(:, 1), v{t, p}(:, 2), v{t, p}(:, 3), 0, 'r');
-        export_fig(fullfile(outputPath, 'of-vec3', folderstr, sprintf('vec3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        
-        % Top view.
         view(2);
+        adjust3dplot;
+        quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), w{t, p}(:, 1), w{t, p}(:, 2), w{t, p}(:, 3), 0, 'r');
         export_fig(fullfile(outputPath, 'of-vec2', folderstr, sprintf('vec2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         
-        % Optical flow vectors scaled.
-        figure(1);
-        cla;
-        colormap(cmap);
-        hold on;
-        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-        view(3);
-        adjust3dplot;
-        quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), v{t, p}(:, 1), v{t, p}(:, 2), v{t, p}(:, 3), 1, 'r');
-        export_fig(fullfile(outputPath, 'of-vec3', folderstr, sprintf('vec3-%s-%s-scaled-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        
-        % Top view.
-        view(2);
-        export_fig(fullfile(outputPath, 'of-vec2', folderstr, sprintf('vec2-%s-%s-scaled-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        
-        % Project and scale flow.
-        up = projecttoplane(v{t, p});
-
-        % Compute colour space scaling.
-        nmax = max(sqrt(sum(up.^2, 2)));
-
-        % Save flow scaling.
-        fprintf(fid, 'Frame %.3i, alpha=%.4f, beta=%.4f: w=%.4g,\t proj(w)=%.4g,\t ', frames(t), alpha{p}, beta{p}, max(sqrt(sum(v{t, p}.^2, 2))), nmax);
-    
         % Compute colour of projection.
-        col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
+        col = double(squeeze(computeColour(wp{t, p}(:, 1)/wpmax{p}, wp{t, p}(:, 2)/wpmax{p}))) ./ 255;
 
         % Optical flow.
         figure(1);
@@ -436,7 +422,7 @@ for t=1:length(frames)-1
         colormap(cmap);
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
         export_fig(fullfile(outputPath, 'of-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -444,7 +430,7 @@ for t=1:length(frames)-1
         
         % Top view.
         view(2);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         export_fig(fullfile(outputPath, 'of-flow2', folderstr, sprintf('flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         
         % Plot magnitude of flow.
@@ -452,35 +438,26 @@ for t=1:length(frames)-1
         cla;
         colormap default;
         hold on;
-        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sqrt(sum(v{t, p}.^2, 2)));
+        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', sqrt(sum(w{t, p}.^2, 2)));
         view(2);
         adjust3dplot;
         colorbar;
-        if(vmax{p} - vmin{p} > eps)
-            caxis([vmin{p}, vmax{p}]);
+        if(wmax{p} - wmin{p} > eps)
+            caxis([wmin{p}, wmax{p}]);
         end
         export_fig(fullfile(outputPath, 'of-flowmagn2', folderstr, sprintf('flowmagn2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         close all;
-        
-        % Recover total velocity.
-        up = projecttoplane(vel{t} + v{t, p});
 
-        % Compute colour space scaling.
-        nmax = max(sqrt(sum(up.^2, 2)));
-
-        % Save flow scaling.
-        fprintf(fid, 'V=%.4g,\t V+w=%.4g,\t proj(V+w)=%.4g\n', max(sqrt(sum(vel{t}.^2, 2))), max(sqrt(sum((vel{t} + v{t, p}).^2, 2))), nmax);
-        
         % Compute colour of projection.
-        col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
-
+        col = double(squeeze(computeColour(Up{t, p}(:, 1)/Upmax{p}, Up{t, p}(:, 2)/Upmax{p}))) ./ 255;
+        
         % Total velocity.
         figure(1);
         cla;
         colormap(cmap);
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
         export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -488,7 +465,7 @@ for t=1:length(frames)-1
         
         % Top view.
         view(2);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         export_fig(fullfile(outputPath, 'of-motion2', folderstr, sprintf('motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         
         % Plot divergence.
@@ -509,12 +486,6 @@ for t=1:length(frames)-1
 end
 close all;
 
-% Close file.
-fclose(fid);
-
-% Open a file to save flow scaling.
-fid = fopen(fullfile(outputPath, 'velocities-cm.txt'), 'w');
-
 % Precompute.
 for t=1:length(frames)-1
     % Load experiment.
@@ -531,20 +502,46 @@ for t=1:length(frames)-1
         
         % Compute norm of flow.
         unorm{t, p} = sqrt(sum(u{t, p}.^2, 2));
+        
+        % Project and scale flow.
+        up{t, p} = projecttoplane(u{t, p});
+
+        % Compute colour space scaling.
+        upnorm{t, p} = sqrt(sum(up{t, p}.^2, 2));
+        
+        % Recover total velocity.
+        U{t, p} = Vsn{t} .* N{t} + u{t, p};
+        Unorm{t, p} = sqrt(sum(U{t, p}.^2, 2));
+        
+        % Project and scale flow.
+        Up{t, p} = projecttoplane(U{t, p});
+        Upnorm{t, p} = sqrt(sum(Up{t, p}.^2, 2));
     end
 end
 
 % Find min and max values.
 for p=1:length(c)
-    sdivmin{p} = min(min([sdiv{:, p}]));
-    sdivmax{p} = max(max([sdiv{:, p}]));
-    umin{p} = min(min([unorm{:, p}]));
-    umax{p} = max(max([unorm{:, p}]));
+    sdivmin{p} = min(min([sdiv{:, p}], [], 2));
+    sdivmax{p} = max(max([sdiv{:, p}], [], 2));
+    umin{p} = min(min([unorm{:, p}], [], 2));
+    umax{p} = max(max([unorm{:, p}], [], 2));
+    upmax{p} = max(max([upnorm{:, p}], [], 2));
+    Umax{p} = max(max([Unorm{:, p}], [], 2));
+    Upmax{p} = max(max([Upnorm{:, p}], [], 2));
 end
+
+% Open a file to save flow scaling.
+fid = fopen(fullfile(outputPath, 'velocities-cm.txt'), 'w');
+fprintf(fid, 'max(V)=%.4g, max(proj(V))=%.4g\n', Vsmax, Vspmax);
+
+% Save flow scaling for each experiment.
+for p=1:length(c)
+    fprintf(fid, 'alpha=%.4g, beta=%.4g: max(u)=%.4g, max(proj(u))=%.4g, max(VN+u)=%.4g, max(proj(VN+u))=%.4g, divmax(u)=%.4g\n', alpha{p}, beta{p}, umax{p}, upmax{p}, Umax{p}, Upmax{p}, sdivmax{p});
+end
+fclose(fid);
     
 % Run through all pairs of frames.
 mkdir(fullfile(outputPath, 'cm-vec2'));
-mkdir(fullfile(outputPath, 'cm-vec3'));
 mkdir(fullfile(outputPath, 'cm-flow2'));
 mkdir(fullfile(outputPath, 'cm-flow3'));
 mkdir(fullfile(outputPath, 'cm-flowmagn2'));
@@ -564,9 +561,8 @@ for t=1:length(frames)-1
         fprintf('Parameter setting %.3i/%.3i.\n', p, length(c));
         
         % Create folder.
-        folderstr = sprintf('alpha-%.4f-beta-%.4f-gamma-%.4f', alpha{p}, beta{p}, gamma{p});
+        folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha{p}, beta{p}, gamma{p});
         mkdir(fullfile(outputPath, 'cm-vec2', folderstr));
-        mkdir(fullfile(outputPath, 'cm-vec3', folderstr));
         mkdir(fullfile(outputPath, 'cm-flow2', folderstr));
         mkdir(fullfile(outputPath, 'cm-flow3', folderstr));
         mkdir(fullfile(outputPath, 'cm-flowmagn2', folderstr));
@@ -580,41 +576,13 @@ for t=1:length(frames)-1
         colormap(cmap);
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-        view(3);
+        view(2);
         adjust3dplot;
         quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), u{t, p}(:, 1), u{t, p}(:, 2), u{t, p}(:, 3), 0, 'r');
-        export_fig(fullfile(outputPath, 'cm-vec3', folderstr, sprintf('vec3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-        % Top view.
-        view(2);
         export_fig(fullfile(outputPath, 'cm-vec2', folderstr, sprintf('vec2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         
-        % Optical flow vectors scaled.
-        figure(1);
-        cla;
-        colormap(cmap);
-        hold on;
-        trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), fd{t}, 'EdgeColor', 'none', 'FaceColor', 'interp');
-        view(3);
-        adjust3dplot;
-        quiver3(ICS{t}(:, 1), ICS{t}(:, 2), ICS{t}(:, 3), u{t, p}(:, 1), u{t, p}(:, 2), u{t, p}(:, 3), 1, 'r');
-        export_fig(fullfile(outputPath, 'cm-vec3', folderstr, sprintf('vec3-%s-%s-scaled-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-        % Top view.
-        view(2);
-        export_fig(fullfile(outputPath, 'cm-vec2', folderstr, sprintf('vec2-%s-%s-scaled-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-        
-        % Project and scale flow.
-        up = projecttoplane(u{t, p});
-
-        % Compute colour space scaling.
-        nmax = max(sqrt(sum(up.^2, 2)));
-
-        % Save flow scaling.
-        fprintf(fid, 'Frame %.3i, alpha=%.4f, beta=%.4f, gamma=%.4f: u=%.4g,\t proj(u)=%.4g,\t ', frames(t), alpha{p}, beta{p}, gamma{p}, max(sqrt(sum(u{t, p}.^2, 2))), nmax);
-        
         % Compute colour of projection.
-        col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
+        col = double(squeeze(computeColour(up{t, p}(:, 1)/upmax{p}, up{t, p}(:, 2)/upmax{p}))) ./ 255;
 
         % Optical flow.
         figure(1);
@@ -622,7 +590,7 @@ for t=1:length(frames)-1
         colormap(cmap);
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
         export_fig(fullfile(outputPath, 'cm-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -630,7 +598,7 @@ for t=1:length(frames)-1
         
         % Top view.
         view(2);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         export_fig(fullfile(outputPath, 'cm-flow2', folderstr, sprintf('flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         
         % Plot magnitude of flow.
@@ -648,17 +616,8 @@ for t=1:length(frames)-1
         export_fig(fullfile(outputPath, 'cm-flowmagn2', folderstr, sprintf('flowmagn2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         close all;
         
-        % Recover total velocity.
-        up = projecttoplane(veln{t} .* N{t} + u{t, p});
-
-        % Compute colour space scaling.
-        nmax = max(sqrt(sum(up.^2, 2)));
-
-        % Save flow scaling.
-        fprintf(fid, 'V*N=%.4g,\t V*N+u=%.4g,\t proj(V*N+u)=%.4g\n', max(sqrt(sum((veln{t} .* N{t}).^2, 2))), max(sqrt(sum((veln{t} .* N{t} + u{t, p}).^2, 2))), nmax);
-        
         % Compute colour of projection.
-        col = double(squeeze(computeColour(up(:, 1)/nmax, up(:, 2)/nmax))) ./ 255;
+        col = double(squeeze(computeColour(Up{t, p}(:, 1)/Upmax{p}, Up{t, p}(:, 2)/Upmax{p}))) ./ 255;
 
         % Total velocity.
         figure(1);
@@ -666,7 +625,7 @@ for t=1:length(frames)-1
         colormap(cmap);
         hold on;
         trisurf(F, S{t}(:, 1), S{t}(:, 2), S{t}(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         view(3);
         adjust3dplot;
         export_fig(fullfile(outputPath, 'cm-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
@@ -674,7 +633,7 @@ for t=1:length(frames)-1
         
         % Top view.
         view(2);
-        C = surf(300:399, -399:-300, zeros(100, 100), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+        C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
         export_fig(fullfile(outputPath, 'cm-motion2', folderstr, sprintf('motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
         
         % Plot divergence.
@@ -694,6 +653,3 @@ for t=1:length(frames)-1
     end
 end
 close all;
-
-% Close file.
-fclose(fid);
