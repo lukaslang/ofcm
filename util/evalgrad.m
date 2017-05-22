@@ -31,7 +31,6 @@ function gradfx = evalgrad(f, scale, S, N, sc, bandwidth, layers)
 %   layers is a positive integer.
 %
 %   fx is a cell array of length k with each containing a vector.
-assert(length(f) > 1);
 assert(all(size(scale) == [1, 3]));
 assert(length(f) == length(S));
 assert(length(f) == length(N));

@@ -47,3 +47,25 @@ verifyEqual(testCase, length(gradfx), 2);
 verifyEqual(testCase, size(gradfx{1}), [n, 3]);
 
 end
+
+function singleInputTest(testCase)
+
+% Create evaluation points.
+[~, V] = sphTriang(4);
+n = size(V, 1);
+
+% Create artificial data.
+f = ones(100, 100, 100);
+
+% Set scale.
+scale = [1, 1, 1] / 50;
+
+% Set offset.
+sc = [1, 1, 1];
+
+% Evaluate.
+gradfx = evalgrad({f}, scale, {V}, {V}, sc, [0.8, 1], 10);
+verifyEqual(testCase, length(gradfx), 1);
+verifyEqual(testCase, size(gradfx{1}), [n, 3]);
+
+end
