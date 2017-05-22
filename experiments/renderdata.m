@@ -229,6 +229,9 @@ signednorm = cellfun(@(x, y) sign(x) .* sqrt(sum(y.^2, 2)), dtrho, Vs, 'UniformO
 signednormmin = min(min([signednorm{:}], [], 2));
 signednormmax = max(max([signednorm{:}], [], 2));
 
+% Create colour wheel.
+cw = colourwheelbg;
+
 % Plot surface velocity.
 mkdir(fullfile(outputPath, 'surfvel2'));
 mkdir(fullfile(outputPath, 'surfvel3'));

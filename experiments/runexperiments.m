@@ -32,7 +32,7 @@ clc;
 
 % Define dataset.
 name = 'cxcr4aMO2_290112';
-timestamp = '2017-05-19-14-37-42';
+timestamp = '2017-05-22-15-43-34';
 
 % Define folder.
 path = fullfile('results', name);
@@ -49,7 +49,7 @@ load(fullfile(path, sprintf('%s-data.mat', timestamp)), 'frames');
 %% Run experiments for optical flow.
 
 % Set regularisation parameters.
-[alpha, beta] = meshgrid([0.01, 0.1], [0.001, 0.01]);
+[alpha, beta] = meshgrid([0.01, 0.05, 0.1], [0.001, 0.01]);
 alpha = num2cell(alpha(:));
 beta = num2cell(beta(:));
 
@@ -82,7 +82,7 @@ end
 %% Run experiments for mass conservation.
 
 % Set regularisation parameters.
-[alpha, beta, gamma] = meshgrid([0.05, 0.5], [0.001, 0.01], [0.001, 0.01]);
+[alpha, beta, gamma] = meshgrid([0.01, 0.05, 0.1], [0.001, 0.01], [0.001]);
 alpha = num2cell(alpha(:));
 beta = num2cell(beta(:));
 gamma = num2cell(gamma(:));
