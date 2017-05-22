@@ -134,7 +134,7 @@ for t=1:length(frames)-1
     N = surfnormals(Ns, cs{t}, xi);
 
     % Compute surface gradient.
-    gradfx = evalgrad(f(t), scale, {Sy1}, N, sc, bandwidth, layers);
+    gradfx = evalgrad(f(t), scale, {Sy1}, {N}, sc, bandwidth, layers);
     
     % Compute optimality conditions.
     timerVal = tic;
