@@ -27,7 +27,7 @@ clc;
 name = 'cxcr4aMO2_290112';
 
 % Set datestring of generated data.
-timestamp1 = '2017-05-19-14-37-42';
+timestamp1 = '2017-05-22-15-43-34';
 
 % Set datestring of experiment.
 timestamp2 = '2017-05-22-23-45-03';
