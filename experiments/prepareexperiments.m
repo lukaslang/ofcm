@@ -31,7 +31,7 @@ path = fullfile(datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
-frames = 50:151;
+frames = 100:151;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -41,7 +41,7 @@ outputPath = fullfile('results', name);
 mkdir(outputPath);
 
 % Specify max. memory for matrix multiplication.
-mem = 5*1024^3;
+mem = 10*1024^3;
 
 % Define Gaussian filter.
 sigma = 1.5;
