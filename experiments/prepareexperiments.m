@@ -57,7 +57,7 @@ area = 100;
 % Define surface fitting parameters.
 Ns = 0:10;
 beta0 = 1e-4;
-beta1 = 10;
+beta1 = 100;
 s = 3+eps;
 
 % Set temporal derivative.
