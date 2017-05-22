@@ -104,23 +104,8 @@ C = cellfun(@(X) bsxfun(@times, X, scale), CC, 'UniformOutput', false);
 % Compute evaluation points.
 Y = sphcoord(xi, eye(3));
 
-% Compute synthesis of evaluation points.
-[Sy, ~] = cellfun(@(c) surfsynth(Ns, Y, c), cs, 'UniformOutput', false);
-
 % Normalise data.
 f = cellfun(@(x) double(x) ./ 255, f, 'UniformOutput', false);
-
-% Evaluate data.
-fx = evaldata(f, scale, Sy, sc, bandwidth, layers);
-
-% Compute temporal derivative.
-dtfx = cellfun(@(x, y) (y - x) / dt, fx(1:end - 1), fx(2:end), 'UniformOutput', false);
-
-% Compute surface normals.
-N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
-
-% Compute surface gradient.
-gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
 % Create segmentation function.
 %segfh = @(x) double(im2bw(x, graythresh(x)));
@@ -134,9 +119,26 @@ save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'f
 for t=1:length(frames)-1
     fprintf('Computing optimality conditions %i/%i.\n', t, length(frames)-1);
     
+    % Compute synthesis of evaluation points.
+    Sy1 = surfsynth(Ns, Y, cs{t});
+    Sy2 = surfsynth(Ns, Y, cs{t+1});
+    
+    % Evaluate data.
+    fx1 = evaldata(f(t), scale, {Sy1}, sc, bandwidth, layers);
+    fx2 = evaldata(f(t+1), scale, {Sy2}, sc, bandwidth, layers);
+
+    % Compute temporal derivative.
+    dtfx = (fx2 - fx1) / dt;
+
+    % Compute surface normals.
+    N = surfnormals(Ns, cs{t}, xi);
+
+    % Compute surface gradient.
+    gradfx = evalgrad(f(t), scale, {Sy1}, N, sc, bandwidth, layers);
+    
     % Compute optimality conditions.
     timerVal = tic;
-    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, segfh(fx{t}), mem);
+    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx, dtfx, fx1, segfh(fx1), mem);
     elapsed = toc(timerVal);
     fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     
