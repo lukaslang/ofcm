@@ -41,7 +41,7 @@ outputPath = fullfile('results', name);
 mkdir(outputPath);
 
 % Specify max. memory for matrix multiplication.
-mem = 10*1024^3;
+mem = 3*1024^3;
 
 % Define Gaussian filter.
 sigma = 1.5;
@@ -129,12 +129,16 @@ for t=1:length(frames)-1
 
     % Compute temporal derivative.
     dtfx = (fx2 - fx1) / dt;
+    clear fx2;
 
     % Compute surface normals.
     N = surfnormals(Ns, cs{t}, xi);
 
     % Compute surface gradient.
     gradfx = cell2mat(evalgrad(f(t), scale, {Sy1}, {N}, sc, bandwidth, layers));
+    clear N;
+    clear Sy1;
+    clear Sy2;
     
     % Compute optimality conditions.
     timerVal = tic;
