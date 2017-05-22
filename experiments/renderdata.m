@@ -61,16 +61,10 @@ TR = TriRep(F, V);
 IC = normalise(TR.incenters);
 [ICS, ICrho] = cellfun(@(c) surfsynth(Ns, IC, c), cs, 'UniformOutput', false);
 
-% Evaluate basis functions at vertices.
-[bfc1, bfc2] = vbasiscompmem(k, h, X, IC, mem);
-
 % Compute coordinates of evaluation points.
 [az, el, ~] = cart2sph(IC(:, 1), IC(:, 2), IC(:, 3));
 el = pi/2 - el;
 xi = [el, az];
-
-% Compute tangent basis.
-[d1, d2] = cellfun(@(c) surftanbasis(Ns, c, xi), cs(1:end-1), 'UniformOutput', false);
 
 % Create spherical mesh for visualisation and remove poles.
 nsphere = 31;
