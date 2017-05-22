@@ -30,7 +30,7 @@ name = 'cxcr4aMO2_290112';
 timestamp1 = '2017-05-19-14-37-42';
 
 % Set datestring of experiment.
-timestamp2 = '2017-05-19-21-38-04';
+timestamp2 = '2017-05-22-23-45-03';
 
 % Define render quality (set to '-r600' for print quality).
 quality = '-r300';
