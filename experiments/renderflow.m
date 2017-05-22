@@ -44,7 +44,7 @@ load(file);
 load(fullfile('data', 'cmapblue.mat'));
 
 % Specify max. memory for matrix multiplication.
-mem = 8*1024^3;
+mem = 3*1024^3;
 
 % Create triangulation for visualisation purpose.
 [F, V] = halfsphTriang(7);
