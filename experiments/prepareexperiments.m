@@ -31,7 +31,7 @@ path = fullfile(datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
-frames = 100:151;
+frames = 50:151;
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
