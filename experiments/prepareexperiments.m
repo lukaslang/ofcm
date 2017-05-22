@@ -125,13 +125,13 @@ N = cellfun(@(x) surfnormals(Ns, x, xi), cs, 'UniformOutput', false);
 % Compute surface gradient.
 gradfx = evalgrad(f, scale, Sy, N, sc, bandwidth, layers);
 
-% Create segmentation.
-%seg = cellfun(@(x) double(im2bw(x, graythresh(x))), fx, 'UniformOutput', false);
-seg = fx;
-%seg = cellfun(@(x) ones(size(x, 1), 1), fx, 'UniformOutput', false);
+% Create segmentation function.
+%segfh = @(x) double(im2bw(x, graythresh(x)));
+segfh = @(x) x;
+%segfh = @(x) ones(size(x, 1), 1);
 
 % Save data and parameters.
-save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'C', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'seg', '-v7.3');
+save(fullfile(outputPath, sprintf('%s-data.mat', startdate)), 'name', 'file', 'frames', 'outputPath', 'Ns', 'cs', 'f', 'scale', 'sc', 'bandwidth', 'layers', 'C', 'k', 'h', 'X', 'mem', 'beta0', 'beta1', 's', 'dt', 'ref', 'deg', 'sigma', 'hsize', 'threshold', 'segfh', '-v7.3');
 
 % Run through all pair of frames.
 for t=1:length(frames)-1
@@ -139,7 +139,7 @@ for t=1:length(frames)-1
     
     % Compute optimality conditions.
     timerVal = tic;
-    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, seg{t}, mem);
+    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, segfh(fx{t}), mem);
     elapsed = toc(timerVal);
     fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     
