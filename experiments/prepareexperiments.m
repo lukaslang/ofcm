@@ -72,7 +72,7 @@ k = 3;
 h = 0.99;
 
 % Define degree of integration.
-deg = 400;
+deg = 600;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
