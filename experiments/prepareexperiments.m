@@ -128,7 +128,7 @@ for t=1:length(frames)-1
     fx2 = evaldata(f(t+1), scale, {Sy2}, sc, bandwidth, layers);
 
     % Compute temporal derivative.
-    dtfx = (fx2 - fx1) / dt;
+    dtfx = (fx2{1} - fx1{1}) / dt;
 
     % Compute surface normals.
     N = surfnormals(Ns, cs{t}, xi);
@@ -138,7 +138,7 @@ for t=1:length(frames)-1
     
     % Compute optimality conditions.
     timerVal = tic;
-    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx, dtfx, fx1, segfh(fx1), mem);
+    [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx, dtfx, fx1{1}, segfh(fx1{1}), mem);
     elapsed = toc(timerVal);
     fprintf('Elapsed time is %.6f seconds.\n', elapsed);
     
