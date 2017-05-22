@@ -27,10 +27,7 @@ clc;
 name = 'cxcr4aMO2_290112';
 
 % Set datestring of generated data.
-timestamp1 = '2017-05-19-14-37-42';
-
-% Set datestring of experiment.
-timestamp2 = '2017-05-19-21-38-04';
+timestamp1 = '2017-05-22-15-43-34';
 
 % Define render quality (set to '-r600' for print quality).
 quality = '-r300';
@@ -88,7 +85,7 @@ rhomin = min(min([rho{:}], [], 2));
 rhomax = max(max([rho{:}], [], 2));
 
 % Create output folders.
-outputPath = fullfile('results', name, timestamp1, timestamp2);
+outputPath = fullfile('results', name, timestamp1);
 mkdir(outputPath);
 
 % Plot rho.
