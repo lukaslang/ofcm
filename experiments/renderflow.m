@@ -66,6 +66,18 @@ IC = normalise(TR.incenters);
 el = pi/2 - el;
 xi = [el, az];
 
+% Compute surface normals.
+N = cellfun(@(c) surfnormals(Ns, c, xi), cs(1:end-1), 'UniformOutput', false);
+
+% Compute surface velocity.
+[~, dtrho] = cellfun(@(x, y) surfsynth(Ns, IC, (y - x) / dt), cs(1:end - 1), cs(2:end), 'UniformOutput', false);
+Vs = cellfun(@(x) x .* IC, dtrho, 'UniformOutput', false);
+Vsnorm = cellfun(@(x) max(sqrt(sum(x.^2, 2))), Vs, 'UniformOutput', false);
+Vsmax = max([Vsnorm{:}]);
+
+% Compute scalar normal part of surface velocity.
+Vsn = cellfun(@(x, y) dot(x, y, 2), Vs, N, 'UniformOutput', false);
+
 % Create output folders.
 outputPath = fullfile('results', name, timestamp1, timestamp2);
 mkdir(outputPath);
