@@ -33,7 +33,7 @@ timestamp1 = '2017-05-22-15-43-34';
 timestamp2 = '2017-05-22-23-45-03';
 
 % Define render quality (set to '-r600' for print quality).
-quality = '-r300';
+quality = '-r100';
 
 % Load data.
 path = fullfile('results', name);
@@ -66,18 +66,6 @@ IC = normalise(TR.incenters);
 el = pi/2 - el;
 xi = [el, az];
 
-% Compute surface normals.
-N = cellfun(@(c) surfnormals(Ns, c, xi), cs(1:end-1), 'UniformOutput', false);
-
-% Compute surface velocity.
-[~, dtrho] = cellfun(@(x, y) surfsynth(Ns, IC, (y - x) / dt), cs(1:end - 1), cs(2:end), 'UniformOutput', false);
-Vs = cellfun(@(x) bsxfun(@times, x, IC), dtrho, 'UniformOutput', false);
-Vsnorm = cellfun(@(x) max(sqrt(sum(x.^2, 2))), Vs, 'UniformOutput', false);
-Vsmax = max([Vsnorm{:}]);
-
-% Compute scalar normal part of surface velocity.
-Vsn = cellfun(@(x, y) dot(x, y, 2), Vs, N, 'UniformOutput', false);
-
 % Create output folders.
 outputPath = fullfile('results', name, timestamp1, timestamp2);
 mkdir(outputPath);
@@ -104,6 +92,13 @@ for t=1:length(frames)-1
     % Compute surface divergence of basis functions.
     bfcdiv = surfdivmem(Ns, cs{t}, xi, k, h, X, mem);
     
+    % Compute surface normals.
+    N = surfnormals(Ns, cs{t}, xi);
+
+    % Compute surface velocity.
+    dtrho = surfsynth(Ns, IC, (cs{t+1} - cs{t}) / dt);
+    Vs = bsxfun(@times, dtrho, IC);
+
     for p=1:length(c)
         % Compute divergence.
         sdiv{t, p} = bfcdiv'*c{p};
@@ -121,7 +116,7 @@ for t=1:length(frames)-1
         wpnorm{t, p} = sqrt(sum(wp{t, p}.^2, 2));
         
         % Recover total velocity.
-        U{t, p} = Vs{t} + w{t, p};
+        U{t, p} = Vs + w{t, p};
         Unorm{t, p} = sqrt(sum(U{t, p}.^2, 2));
         
         % Project and scale flow.
@@ -143,7 +138,6 @@ end
 
 % Open a file to save flow scaling.
 fid = fopen(fullfile(outputPath, 'velocities-of.txt'), 'w');
-fprintf(fid, 'max(V)=%.4g, max(proj(V))=%.4g\n', Vsmax, Vspmax);
 
 % Save flow scaling for each experiment.
 for p=1:length(c)
@@ -278,6 +272,16 @@ for t=1:length(frames)-1
     % Compute surface divergence of basis functions.
     bfcdiv = surfdivmem(Ns, cs{t}, xi, k, h, X, mem);
     
+    % Compute surface normals.
+    N = surfnormals(Ns, cs{t}, xi);
+
+    % Compute surface velocity.
+    dtrho = surfsynth(Ns, IC, (cs{t+1} - cs{t}) / dt);
+    Vs = bsxfun(@times, dtrho, IC);
+    
+    % Compute scalar normal part of surface velocity.
+    Vsn = dot(Vs, N);
+    
     for p=1:length(c)
         % Compute divergence.
         sdiv{t, p} = bfcdiv'*c{p};
@@ -295,7 +299,7 @@ for t=1:length(frames)-1
         upnorm{t, p} = sqrt(sum(up{t, p}.^2, 2));
         
         % Recover total velocity.
-        U{t, p} = bsxfun(@times, Vsn{t}, N{t}) + u{t, p};
+        U{t, p} = bsxfun(@times, Vsn, N) + u{t, p};
         Unorm{t, p} = sqrt(sum(U{t, p}.^2, 2));
         
         % Project and scale flow.
