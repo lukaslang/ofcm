@@ -71,7 +71,7 @@ N = cellfun(@(c) surfnormals(Ns, c, xi), cs(1:end-1), 'UniformOutput', false);
 
 % Compute surface velocity.
 [~, dtrho] = cellfun(@(x, y) surfsynth(Ns, IC, (y - x) / dt), cs(1:end - 1), cs(2:end), 'UniformOutput', false);
-Vs = cellfun(@(x) x .* IC, dtrho, 'UniformOutput', false);
+Vs = cellfun(@(x) bsxfun(@times, x, IC), dtrho, 'UniformOutput', false);
 Vsnorm = cellfun(@(x) max(sqrt(sum(x.^2, 2))), Vs, 'UniformOutput', false);
 Vsmax = max([Vsnorm{:}]);
 
@@ -295,7 +295,7 @@ for t=1:length(frames)-1
         upnorm{t, p} = sqrt(sum(up{t, p}.^2, 2));
         
         % Recover total velocity.
-        U{t, p} = Vsn{t} .* N{t} + u{t, p};
+        U{t, p} = bsxfun(@times, Vsn{t}, N{t}) + u{t, p};
         Unorm{t, p} = sqrt(sum(U{t, p}.^2, 2));
         
         % Project and scale flow.
