@@ -66,9 +66,6 @@ IC = normalise(TR.incenters);
 el = pi/2 - el;
 xi = [el, az];
 
-% Compute tangent basis.
-[d1, d2] = cellfun(@(c) surftanbasis(Ns, c, xi), cs(1:end-1), 'UniformOutput', false);
-
 % Create output folders.
 outputPath = fullfile('results', name, timestamp1, timestamp2);
 mkdir(outputPath);
@@ -82,9 +79,6 @@ view(2);
 export_fig(fullfile(outputPath, 'colourwheel.png'), '-png', quality, '-a1', '-transparent');
 close all;
 
-% Compute surface divergence of basis functions.
-bfcdiv = cellfun(@(c) surfdivmem(Ns, c, xi, k, h, X, mem), cs, 'UniformOutput', false);
-
 % Precompute.
 for t=1:length(frames)-1
     % Load experiment.
@@ -92,12 +86,18 @@ for t=1:length(frames)-1
     file = fullfile(path, sprintf('%s-coeff-of-%.3i.mat', timestamp2, frames(t)));
     load(file);
     
+    % Compute tangent basis.
+    [d1, d2] = surftanbasis(Ns, cs{t}, xi);
+    
+    % Compute surface divergence of basis functions.
+    bfcdiv = surfdivmem(Ns, cs{t}, xi, k, h, X, mem);
+    
     for p=1:length(c)
         % Compute divergence.
-        sdiv{t, p} = bfcdiv{t}'*c{p};
+        sdiv{t, p} = bfcdiv'*c{p};
         
         % Compute flow.
-        w{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
+        w{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1) + bsxfun(@times, full((bfc2')*c{p}), d2);
         
         % Compute norm of flow.
         wnorm{t, p} = sqrt(sum(w{t, p}.^2, 2));
@@ -260,12 +260,18 @@ for t=1:length(frames)-1
     file = fullfile(path, sprintf('%s-coeff-cm-%.3i.mat', timestamp2, frames(t)));
     load(file);
     
+    % Compute tangent basis.
+    [d1, d2] = surftanbasis(Ns, cs{t}, xi);
+    
+    % Compute surface divergence of basis functions.
+    bfcdiv = surfdivmem(Ns, cs{t}, xi, k, h, X, mem);
+    
     for p=1:length(c)
         % Compute divergence.
-        sdiv{t, p} = bfcdiv{t}'*c{p};
+        sdiv{t, p} = bfcdiv'*c{p};
         
         % Compute flow.
-        u{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1{t}) + bsxfun(@times, full((bfc2')*c{p}), d2{t});
+        u{t, p} = bsxfun(@times, full((bfc1')*c{p}), d1) + bsxfun(@times, full((bfc2')*c{p}), d2);
         
         % Compute norm of flow.
         unorm{t, p} = sqrt(sum(u{t, p}.^2, 2));
