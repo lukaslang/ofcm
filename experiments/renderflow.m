@@ -36,7 +36,7 @@ timestamp2 = '2017-05-22-23-45-03';
 quality = '-r300';
 
 % Set plotting interval (must be a subset of 1:length(frames)-1).
-I = 61:71;
+I = 50:150;
 
 % Load data.
 path = fullfile('results', name);
@@ -317,6 +317,8 @@ for t=I
 end
 close all;
 clear w;
+clear wp;
+clear U;
 clear Up;
 
 % Load first experiment.
@@ -356,7 +358,7 @@ for t=I
     Vs = bsxfun(@times, dtrho, IC);
     
     % Compute scalar normal part of surface velocity.
-    Vsn = dot(Vs, N);
+    Vsn = dot(Vs, N, 2);
     
     for p=1:length(c)
         % Compute divergence.
