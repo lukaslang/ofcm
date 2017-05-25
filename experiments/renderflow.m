@@ -33,7 +33,10 @@ timestamp1 = '2017-05-22-15-43-34';
 timestamp2 = '2017-05-22-23-45-03';
 
 % Define render quality (set to '-r600' for print quality).
-quality = '-r100';
+quality = '-r300';
+
+% Set plotting interval (must be a subset of 1:length(frames)-1).
+I = 61:71;
 
 % Load data.
 path = fullfile('results', name);
@@ -74,6 +77,11 @@ view(2);
 export_fig(fullfile(outputPath, 'colourwheel.png'), '-png', quality, '-a1', '-transparent');
 close all;
 
+% Load first experiment.
+path = fullfile('results', name, timestamp1);
+file = fullfile(path, sprintf('%s-coeff-of-%.3i.mat', timestamp2, frames(I(1))));
+load(file);
+
 % Initialise.
 for p=1:length(c)
     sdivmin{p} = inf;
@@ -86,7 +94,7 @@ for p=1:length(c)
 end
 
 % Precompute.
-for t=1:length(frames)-1
+for t=I
     % Load experiment.
     path = fullfile('results', name, timestamp1);
     file = fullfile(path, sprintf('%s-coeff-of-%.3i.mat', timestamp2, frames(t)));
@@ -130,13 +138,13 @@ for t=1:length(frames)-1
         Upnorm = sqrt(sum(Up.^2, 2));
         
         % Update min/max values.
-        sdivmin{p} = min(sdivmin, min(sdiv));
-        sdivmax{p} = max(sdivmax, max(sdiv));
-        wmin{p} = min(wmin, min(wnorm));
-        wmax{p} = max(wmax, max(wnorm));
-        wpmax{p} = max(wmax, max(wpnorm));
-        Umax{p} = max(Umax, max(Unorm));
-        Upmax{p} = max(Upmax, max(Upnorm));        
+        sdivmin{p} = min(sdivmin{p}, min(sdiv));
+        sdivmax{p} = max(sdivmax{p}, max(sdiv));
+        wmin{p} = min(wmin{p}, min(wnorm));
+        wmax{p} = max(wmax{p}, max(wnorm));
+        wpmax{p} = max(wpmax{p}, max(wpnorm));
+        Umax{p} = max(Umax{p}, max(Unorm));
+        Upmax{p} = max(Upmax{p}, max(Upnorm));        
     end
 end
 clear sdiv;
@@ -166,8 +174,8 @@ mkdir(fullfile(outputPath, 'of-flowmagn2'));
 mkdir(fullfile(outputPath, 'of-motion2'));
 mkdir(fullfile(outputPath, 'of-motion3'));
 mkdir(fullfile(outputPath, 'of-div2'));
-for t=1:length(frames)-1
-    fprintf('Rendering frame %.3i/%.3i.\n', t, length(frames)-1);
+for t=I
+    fprintf('Rendering frame %.3i.\n', t);
 
      % Load experiment.
     path = fullfile('results', name, timestamp1);
@@ -209,6 +217,9 @@ for t=1:length(frames)-1
         mkdir(fullfile(outputPath, 'of-motion2', folderstr));
         mkdir(fullfile(outputPath, 'of-motion3', folderstr));
         mkdir(fullfile(outputPath, 'of-div2', folderstr));
+        
+        % Compute divergence.
+        sdiv = bfcdiv'*c{p};
         
         % Compute flow.
         w = bsxfun(@times, full((bfc1')*c{p}), d1) + bsxfun(@times, full((bfc2')*c{p}), d2);
@@ -308,6 +319,11 @@ close all;
 clear w;
 clear Up;
 
+% Load first experiment.
+path = fullfile('results', name, timestamp1);
+file = fullfile(path, sprintf('%s-coeff-cm-%.3i.mat', timestamp2, frames(I(1))));
+load(file);
+
 % Initialise.
 for p=1:length(c)
     sdivmin{p} = inf;
@@ -320,7 +336,7 @@ for p=1:length(c)
 end
 
 % Precompute.
-for t=1:length(frames)-1
+for t=I
     % Load experiment.
     path = fullfile('results', name, timestamp1);
     file = fullfile(path, sprintf('%s-coeff-cm-%.3i.mat', timestamp2, frames(t)));
@@ -367,13 +383,13 @@ for t=1:length(frames)-1
         Upnorm = sqrt(sum(Up.^2, 2));
         
         % Update min/max values.
-        sdivmin{p} = min(sdivmin, min(sdiv));
-        sdivmax{p} = max(sdivmax, max(sdiv));
-        umin{p} = min(umin, min(unorm));
-        umax{p} = max(umax, max(unorm));
-        upmax{p} = max(upmax, max(upnorm));
-        Umax{p} = max(Umax, max(Unorm));
-        Upmax{p} = max(Upmax, max(Upnorm));       
+        sdivmin{p} = min(sdivmin{p}, min(sdiv));
+        sdivmax{p} = max(sdivmax{p}, max(sdiv));
+        umin{p} = min(umin{p}, min(unorm));
+        umax{p} = max(umax{p}, max(unorm));
+        upmax{p} = max(upmax{p}, max(upnorm));
+        Umax{p} = max(Umax{p}, max(Unorm));
+        Upmax{p} = max(Upmax{p}, max(Upnorm));       
     end
 end
 clear sdiv;
@@ -403,8 +419,8 @@ mkdir(fullfile(outputPath, 'cm-flowmagn2'));
 mkdir(fullfile(outputPath, 'cm-motion2'));
 mkdir(fullfile(outputPath, 'cm-motion3'));
 mkdir(fullfile(outputPath, 'cm-div2'));
-for t=1:length(frames)-1
-    fprintf('Rendering frame %.3i/%.3i.\n', t, length(frames)-1);
+for t=I
+    fprintf('Rendering frame %.3i.\n', t);
 
     % Load experiment.
     path = fullfile('results', name, timestamp1);
