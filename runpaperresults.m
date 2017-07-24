@@ -40,6 +40,9 @@ startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 outputPath = fullfile('results', name);
 mkdir(outputPath);
 
+% Load colormap.
+load(fullfile('data', 'cmapblue.mat'));
+
 % Specify max. memory for matrix multiplication.
 mem = 3*1024^3;
 
@@ -163,6 +166,22 @@ elapsed = toc(timerVal);
 fprintf('Relative residual %e.\n', relres);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
+% Create triangulation for visualization purpose.
+[F, V] = halfsphTriang(7);
+
+% Find midpoints of faces on sphere.
+TR = TriRep(F, V);
+IC = normalise(TR.incenters);
+
+% Compute synthesis for vertices.
+[S, ~] = surfsynth(Ns, V, cs{t});
+
+% Evaluate data at vertices.
+fd = cell2mat(evaldata(f(t), scale, {S}, sc, bandwidth, layers));
+
+% Compute synthesis for midpoints.
+[ICS, ~] = surfsynth(Ns, IC, cs{t});
+
 % Compute surface normals.
 N = surfnormals(Ns, cs{t}, xi);
 
@@ -170,8 +189,19 @@ N = surfnormals(Ns, cs{t}, xi);
 dtrho = surfsynth(Ns, IC, (cs{t+1} - cs{t}) / dt);
 Vs = bsxfun(@times, dtrho, IC);
 
+% Evaluate basis functions at vertices.
+[bfc1, bfc2] = vbasiscompmem(k, h, X, IC, mem);
+
+% Compute coordinates of evaluation points.
+[az, el, ~] = cart2sph(IC(:, 1), IC(:, 2), IC(:, 3));
+el = pi/2 - el;
+xi = [el, az];
+
+% Compute tangent basis.
+[d1, d2] = surftanbasis(Ns, cs{t}, xi);
+
 % Compute flow.
-w = bsxfun(@times, full((bfc1')*c{p}), d1) + bsxfun(@times, full((bfc2')*c{p}), d2);
+w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
 
 % Project and scale flow.
 wp = projecttoplane(w);
@@ -186,8 +216,7 @@ Up = projecttoplane(U);
 col = double(squeeze(computeColour(wp(:, 1), wp(:, 2)))) ./ 255;
 
 % Plot colour-coded flow.
-figure(1);
-cla;
+figure(2);
 colormap(cmap);
 hold on;
 trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
@@ -195,31 +224,38 @@ C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'Edg
 view(3);
 adjust3dplot;
 %export_fig(fullfile(outputPath, 'of-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-delete(C);
 
 % Top view.
-view(2);
+figure(3);
+colormap(cmap);
+hold on;
+trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
 C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+adjust3dplot;
+view(2);
 %export_fig(fullfile(outputPath, 'of-flow2', folderstr, sprintf('flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
 
 % Compute colour of projection.
 col = double(squeeze(computeColour(Up(:, 1), Up(:, 2)))) ./ 255;
 
 % Total velocity.
-figure(1);
-cla;
+figure(4);
 colormap(cmap);
 hold on;
 trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
 C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-view(3);
 adjust3dplot;
+view(3);
 %export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-delete(C);
 
 % Top view.
-view(2);
+figure(4);
+colormap(cmap);
+hold on;
+trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
 C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
+adjust3dplot;
+view(2);
 %export_fig(fullfile(outputPath, 'of-motion2', folderstr, sprintf('motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
 
 % Visualise closeup.
