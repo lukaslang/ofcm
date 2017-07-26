@@ -68,14 +68,14 @@ bandwidth = [0.9, 1.1];
 layers = 40;
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
-ref = 5;
+ref = 6;
 
 % Set parameters for basis function.
 k = 3;
-h = 0.99;
+h = 0.995;
 
 % Define degree of integration.
-deg = 600;
+deg = 400;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
@@ -125,15 +125,20 @@ view(2);
 %% Optical flow vs. mass conservation.
 
 % Select pair of frames.
-t = 62;
+t = 63;
+
+% Select data.
+f1 = f(t);
+f2 = f(t+1);
+clear f;
 
 % Compute synthesis of evaluation points.
 Sy1 = surfsynth(Ns, Y, cs{t});
 Sy2 = surfsynth(Ns, Y, cs{t+1});
 
 % Evaluate data.
-fx1 = cell2mat(evaldata(f(t), scale, {Sy1}, sc, bandwidth, layers));
-fx2 = cell2mat(evaldata(f(t+1), scale, {Sy2}, sc, bandwidth, layers));
+fx1 = cell2mat(evaldata(f1, scale, {Sy1}, sc, bandwidth, layers));
+fx2 = cell2mat(evaldata(f2, scale, {Sy2}, sc, bandwidth, layers));
 
 % Compute temporal derivative.
 dtfx = (fx2 - fx1) / dt;
@@ -143,7 +148,7 @@ clear fx2;
 N = surfnormals(Ns, cs{t}, xi);
 
 % Compute surface gradient.
-gradfx = cell2mat(evalgrad(f(t), scale, {Sy1}, {N}, sc, bandwidth, layers));
+gradfx = cell2mat(evalgrad(f1, scale, {Sy1}, {N}, sc, bandwidth, layers));
 clear N;
 clear Sy1;
 clear Sy2;
@@ -155,7 +160,7 @@ elapsed = toc(timerVal);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
 % Set regularisation parameters.
-alpha = 0.01;
+alpha = 0.1;
 beta = 0.001;
 
 % Solve linear system for optical flow.
@@ -177,7 +182,7 @@ IC = normalise(TR.incenters);
 [S, ~] = surfsynth(Ns, V, cs{t});
 
 % Evaluate data at vertices.
-fd = cell2mat(evaldata(f(t), scale, {S}, sc, bandwidth, layers));
+fd = cell2mat(evaldata(f1, scale, {S}, sc, bandwidth, layers));
 
 % Compute synthesis for midpoints.
 [ICS, ~] = surfsynth(Ns, IC, cs{t});
@@ -212,8 +217,14 @@ U = Vs + w;
 % Project and scale flow.
 Up = projecttoplane(U);
 
+% Compute colour space scaling.
+wpnorm = max(sqrt(sum(wp.^2, 2)));
+
+% Compute colour space scaling.
+Upnorm = max(sqrt(sum(Up.^2, 2)));
+
 % Compute colour of projection.
-col = double(squeeze(computeColour(wp(:, 1), wp(:, 2)))) ./ 255;
+col = double(squeeze(computeColour(wp(:, 1)./wpnorm, wp(:, 2)./wpnorm))) ./ 255;
 
 % Plot colour-coded flow.
 figure(2);
@@ -235,11 +246,20 @@ adjust3dplot;
 view(2);
 %export_fig(fullfile(outputPath, 'of-flow2', folderstr, sprintf('flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
 
+% Cell division.
+figure(4);
+colormap(cmap);
+hold on;
+trisurf(F, S(:, 1), S(:, 2), S(:, 3), fd, 'EdgeColor', 'none', 'FaceColor', 'interp');
+quiver3(ICS(:, 1), ICS(:, 2), ICS(:, 3), w(:, 1), w(:, 2), w(:, 3), 0, 'r');
+adjust3dplot;
+view(2);
+
 % Compute colour of projection.
-col = double(squeeze(computeColour(Up(:, 1), Up(:, 2)))) ./ 255;
+col = double(squeeze(computeColour(Up(:, 1)./Upnorm, Up(:, 2)./Upnorm))) ./ 255;
 
 % Total velocity.
-figure(4);
+figure(5);
 colormap(cmap);
 hold on;
 trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
@@ -249,7 +269,7 @@ view(3);
 %export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
 
 % Top view.
-figure(4);
+figure(6);
 colormap(cmap);
 hold on;
 trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
