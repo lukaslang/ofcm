@@ -33,11 +33,14 @@ file = fullfile(path, strcat(name, '.lsm'));
 % Select frames.
 frames = 50:151;
 
+% Define render quality (set to '-r600' for print quality).
+quality = '-r100';
+
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
 
 % Define and create output folder.
-outputPath = fullfile('results', name);
+outputPath = fullfile('results', name, 'figures', startdate);
 mkdir(outputPath);
 
 % Load colormap.
@@ -60,7 +63,7 @@ beta0 = 1e-4;
 beta1 = 100;
 s = 3+eps;
 
-% Set temporal derivative.
+% Set temporal interval.
 dt = 1;
 
 % Parameters for radial projection of the data.
@@ -68,7 +71,8 @@ bandwidth = [0.9, 1.1];
 layers = 40;
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
-ref = 6;
+ref = 5;
+% ref = 6;
 
 % Set parameters for basis function.
 k = 3;
@@ -102,7 +106,7 @@ C = cellfun(@(X) bsxfun(@times, X, scale), CC, 'UniformOutput', false);
 [~, X] = halfsphTriang(ref);
 
 % Create integration points and quadrature rule for spherical cap.
-[xi, w] = gausslegendre(deg, pi/2);
+[xi, weights] = gausslegendre(deg, pi/2);
 
 % Compute evaluation points.
 Y = sphcoord(xi, eye(3));
@@ -113,16 +117,63 @@ f = cellfun(@(x) double(x) ./ 255, f, 'UniformOutput', false);
 % Create segmentation function.
 segfh = @(x) x;
 
-% Plot 2D colourwheel.
-figure(1);
-cw = colourwheelbg;
-surf(1:200, 1:200, zeros(200, 200), cw, 'FaceColor', 'texturemap', 'EdgeColor', 'none');
-daspect([1, 1, 1]);
-view(2);
-%export_fig(fullfile(outputPath, 'colourwheel.png'), '-png', quality, '-a1', '-transparent');
-%close all;
+% Create triangulation for visualization purpose.
+[F, V] = halfsphTriang(7);
 
-%% Optical flow vs. mass conservation.
+% Find midpoints of faces on sphere.
+TR = TriRep(F, V);
+IC = normalise(TR.incenters);
+
+%% Plot dataset and fitted surface.
+
+% Create spherical mesh for visualisation and remove poles.
+nsphere = 31;
+[Xm, Ym, Zm] = sphere(nsphere-1);
+Xm = Xm(2:end-1, :);
+Ym = Ym(2:end-1, :);
+Zm = Zm(2:end-1, :);
+
+% Define scaling factor of spherical mesh.
+gridscale = 1.01;
+
+% Compute synthesis at mesh vertices.
+[Vm, ~] = cellfun(@(c) surfsynth(Ns, [Xm(:), Ym(:), Zm(:)], c), cs, 'UniformOutput', false);
+Vm = cellfun(@(x) x .* gridscale, Vm, 'UniformOutput', false);
+Xm = cellfun(@(x) reshape(x(:, 1), nsphere-2, nsphere), Vm, 'UniformOutput', false);
+Ym = cellfun(@(x) reshape(x(:, 2), nsphere-2, nsphere), Vm, 'UniformOutput', false);
+Zm = cellfun(@(x) reshape(x(:, 3), nsphere-2, nsphere), Vm, 'UniformOutput', false);
+
+% Select frames to render.
+selFrames = 1:50:length(frames);
+
+for t=selFrames
+    % Compute synthesis for vertices.
+    [S, rho] = surfsynth(Ns, V, cs{t});
+
+    % Evaluate data.
+    fd = cell2mat(evaldata(f(t), scale, {S}, sc, bandwidth, layers));
+
+    % Plot data.
+    plotdata(F, V, S, Xm{t}, Ym{t}, Zm{t}, f{t}, fd, rho, cmap, scale, sc, bandwidth);
+    
+    % Save figures.
+    export_fig(fullfile(outputPath, sprintf('rho2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+    export_fig(fullfile(outputPath, sprintf('raw3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+    export_fig(fullfile(outputPath, sprintf('raw3-%s-surf-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+    export_fig(fullfile(outputPath, sprintf('raw3-%s-surf-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(4));
+    export_fig(fullfile(outputPath, sprintf('raw3-%s-cross-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+    export_fig(fullfile(outputPath, sprintf('data3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(6));
+    export_fig(fullfile(outputPath, sprintf('data2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+    export_fig(fullfile(outputPath, sprintf('data3-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+    export_fig(fullfile(outputPath, sprintf('data2-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    close all;
+end
+clear Vm;
+clear Xm;
+clear Ym;
+clear Zm;
+
+%% Compute optimality conditions.
 
 % Select pair of frames.
 t = 63;
@@ -155,34 +206,18 @@ clear Sy2;
 
 fprintf('Computing optimaly conditions.\n');
 timerVal = tic;
-[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx, dtfx, fx1, segfh(fx1), mem);
+[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
 elapsed = toc(timerVal);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
-% Set regularisation parameters.
-alpha = 0.1;
-beta = 0.001;
-
-% Solve linear system for optical flow.
-timerVal = tic;
-c = (Aof + alpha * D + beta * E) \ bof;
-relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
-elapsed = toc(timerVal);
-fprintf('Relative residual %e.\n', relres);
-fprintf('Elapsed time is %.6f seconds.\n', elapsed);
-
-% Create triangulation for visualization purpose.
-[F, V] = halfsphTriang(7);
-
-% Find midpoints of faces on sphere.
-TR = TriRep(F, V);
-IC = normalise(TR.incenters);
+%% Create triangulation etc. for visualisation.
 
 % Compute synthesis for vertices.
 [S, ~] = surfsynth(Ns, V, cs{t});
 
 % Evaluate data at vertices.
-fd = cell2mat(evaldata(f1, scale, {S}, sc, bandwidth, layers));
+fd1 = cell2mat(evaldata(f1, scale, {S}, sc, bandwidth, layers));
+fd2 = cell2mat(evaldata(f2, scale, {S}, sc, bandwidth, layers));
 
 % Compute synthesis for midpoints.
 [ICS, ~] = surfsynth(Ns, IC, cs{t});
@@ -205,85 +240,60 @@ xi = [el, az];
 % Compute tangent basis.
 [d1, d2] = surftanbasis(Ns, cs{t}, xi);
 
+%% Compute optical flow.
+
+% Set regularisation parameters.
+alpha = 0.1;
+beta = 0.001;
+
+% Create folder string with parameters.
+folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
+
+% Solve linear system for optical flow.
+timerVal = tic;
+c = (Aof + alpha * D + beta * E) \ bof;
+relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
+elapsed = toc(timerVal);
+fprintf('Relative residual %e.\n', relres);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
 % Compute flow.
 w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
 
-% Project and scale flow.
-wp = projecttoplane(w);
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, w, cmap);
+
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('of-flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('of-flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+close all;
+
+%% Compute total motion.
 
 % Recover total velocity.
 U = Vs + w;
 
-% Project and scale flow.
-Up = projecttoplane(U);
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, U, cmap);
 
-% Compute colour space scaling.
-wpnorm = max(sqrt(sum(wp.^2, 2)));
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('of-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('of-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+close all;
 
-% Compute colour space scaling.
-Upnorm = max(sqrt(sum(Up.^2, 2)));
-
-% Compute colour of projection.
-col = double(squeeze(computeColour(wp(:, 1)./wpnorm, wp(:, 2)./wpnorm))) ./ 255;
-
-% Plot colour-coded flow.
-figure(2);
-colormap(cmap);
-hold on;
-trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-view(3);
-adjust3dplot;
-%export_fig(fullfile(outputPath, 'of-flow3', folderstr, sprintf('flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-% Top view.
-figure(3);
-colormap(cmap);
-hold on;
-trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-adjust3dplot;
-view(2);
-%export_fig(fullfile(outputPath, 'of-flow2', folderstr, sprintf('flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-% Cell division.
-figure(4);
-colormap(cmap);
-hold on;
-trisurf(F, S(:, 1), S(:, 2), S(:, 3), fd, 'EdgeColor', 'none', 'FaceColor', 'interp');
-quiver3(ICS(:, 1), ICS(:, 2), ICS(:, 3), w(:, 1), w(:, 2), w(:, 3), 0, 'r');
-adjust3dplot;
-view(2);
-
-% Compute colour of projection.
-col = double(squeeze(computeColour(Up(:, 1)./Upnorm, Up(:, 2)./Upnorm))) ./ 255;
-
-% Total velocity.
-figure(5);
-colormap(cmap);
-hold on;
-trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-adjust3dplot;
-view(3);
-%export_fig(fullfile(outputPath, 'of-motion3', folderstr, sprintf('motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-% Top view.
-figure(6);
-colormap(cmap);
-hold on;
-trisurf(F, S(:, 1), S(:, 2), S(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', col);
-C = surf(250:399, -399:-250, zeros(150, 150), cw, 'FaceColor','texturemap', 'EdgeColor', 'none');
-adjust3dplot;
-view(2);
-%export_fig(fullfile(outputPath, 'of-motion2', folderstr, sprintf('motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1');
-
-% Visualise closeup.
+%% Mass conservation.
 
 % Set regularisation parameters.
 alpha = 0.01;
 beta = 0.001;
 gamma = 0.005;
+
+% Create folder string with parameters.
+folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
 
 % Solve linear system for mass conservation.
 timerVal = tic;
@@ -293,10 +303,199 @@ elapsed = toc(timerVal);
 fprintf('Relative residual %e.\n', relres);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
-% Visualise differences for different segmentations.
+% Compute flow.
+u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
 
-% Create segmentation function.
-%segfh = @(x) double(im2bw(x, graythresh(x)));
-segfh = @(x) x;
-%segfh = @(x) ones(size(x, 1), 1);
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, u, cmap);
 
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('cm-flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+close all;
+
+%% Compute total motion.
+
+% Compute surface velocity.
+dtrho = surfsynth(Ns, IC, (cs{t+1} - cs{t}) / dt);
+Vs = bsxfun(@times, dtrho, IC);
+
+% Compute scalar normal part of surface velocity.
+Vsn = dot(Vs, N, 2);
+
+% Recover total velocity.
+U = bsxfun(@times, Vsn, N) + u;
+
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, U, cmap);
+
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('cm-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('cm-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+close all;
+
+%% Use automatic thresholding for segmentation.
+
+% Use automatic thresholding.
+segfh = @(x) double(imbinarize(x, graythresh(x)));
+
+fprintf('Computing optimaly conditions.\n');
+timerVal = tic;
+[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
+elapsed = toc(timerVal);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Set regularisation parameters.
+alpha = 0.1;
+beta = 0.001;
+
+% Create folder string with parameters.
+folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
+
+% Solve linear system for optical flow.
+timerVal = tic;
+c = (Aof + alpha * D + beta * E) \ bof;
+relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
+elapsed = toc(timerVal);
+fprintf('Relative residual %e.\n', relres);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Compute flow.
+w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, w, cmap);
+
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('of-flow3-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+close all;
+
+% Set regularisation parameters.
+alpha = 0.01;
+beta = 0.001;
+gamma = 0.005;
+
+% Create folder string with parameters.
+folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
+
+% Solve linear system for mass conservation.
+timerVal = tic;
+c = (Acm + alpha * D + beta * E + gamma * G) \ bcm;
+relres = norm((Acm + alpha * D + beta * E + gamma * G) * c - bcm) / norm(bcm);
+elapsed = toc(timerVal);
+fprintf('Relative residual %e.\n', relres);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Compute flow.
+u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, u, cmap);
+
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('cm-flow3-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+close all;
+
+%% Use constant one as segmentation.
+
+% Use constant one.
+segfh = @(x) ones(size(x, 1), 1);
+
+fprintf('Computing optimaly conditions.\n');
+timerVal = tic;
+[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
+elapsed = toc(timerVal);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Set regularisation parameters.
+alpha = 0.1;
+beta = 0;
+
+% Create folder string with parameters.
+folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
+
+% Solve linear system for optical flow.
+timerVal = tic;
+c = (Aof + alpha * D + beta * E) \ bof;
+relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
+elapsed = toc(timerVal);
+fprintf('Relative residual %e.\n', relres);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Compute flow.
+w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, w, cmap);
+
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('of-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('of-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+close all;
+
+% Set regularisation parameters.
+alpha = 0.01;
+beta = 0.001;
+gamma = 0.005;
+
+% Create folder string with parameters.
+folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
+
+% Solve linear system for mass conservation.
+timerVal = tic;
+c = (Acm + alpha * D + beta * E + gamma * G) \ bcm;
+relres = norm((Acm + alpha * D + beta * E + gamma * G) * c - bcm) / norm(bcm);
+elapsed = toc(timerVal);
+fprintf('Relative residual %e.\n', relres);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Compute flow.
+u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, u, cmap);
+
+% Save figures.
+export_fig(fullfile(outputPath, sprintf('cm-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+close all;
+
+%% Streamlines.
+
+% Set seed points for streamlines.
+[xs, ys] = meshgrid(-400:15:400, -400:15:400);
+
+% Set parameters.
+stepsize = 1;
+maxit = 50;
+lineWidth = 1;
+
+% Plot streamlines for flow.
+figure(1);
+colormap('summer');
+hold on;
+view(2);
+adjust3dplot;
+streamlines2(ICS(:, 1:2), w(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
