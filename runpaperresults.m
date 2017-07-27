@@ -499,3 +499,29 @@ hold on;
 view(2);
 adjust3dplot;
 streamlines2(ICS(:, 1:2), w(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
+
+%% Basis functions.
+
+% Evaluate basis functions at vertices.
+[bfc1, bfc2] = vbasiscompmem(k, h, X, IC, mem);
+
+% Compute support of basis functions.
+supp = bfc1 > 0;
+supp = full(sum(supp, 1))';
+
+% Plot sum of basis functions.
+figure(1);
+daspect([1, 1, 1]);
+hold on;
+trisurf(F, V(:, 1), V(:, 2), V(:, 3), 'EdgeColor', 'none', 'FaceColor', 'flat', 'FaceVertexCData', supp);
+set(gca, 'ZLim', [0, 1]);
+set(gca, 'XLim', [-1, 1]);
+set(gca, 'YLim', [-1, 1]);
+set(gca, 'XTick', -1:0.5:1);
+set(gca, 'YTick', -1:0.5:1);
+set(gca, 'ZTick', -1:0.5:1);
+set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
+set(gca, 'FontName', 'Helvetica' );
+set(gca, 'FontSize', 14);
+colorbar;
+view(3);
