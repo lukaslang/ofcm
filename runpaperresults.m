@@ -78,7 +78,7 @@ k = 3;
 h = 0.995;
 
 % Define degree of integration.
-deg = 500;
+deg = 400;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
@@ -336,7 +336,7 @@ close all;
 %% Use automatic thresholding for segmentation.
 
 % Use automatic thresholding.
-segfh = @(x) double(imbinarize(x, graythresh(x)));
+segfh = @(x) double(im2bw(x, graythresh(x)));
 
 fprintf('Computing optimaly conditions.\n');
 timerVal = tic;
@@ -495,16 +495,13 @@ view(2);
 adjust3dplot;
 streamlines2(ICS(:, 1:2), w(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
 
-%% Basis functions.
-
-% Evaluate basis functions at vertices.
-[bfc1, bfc2] = vbasiscompmem(k, h, X, IC, mem);
+%% Plot overlap of basis functions.
 
 % Compute support of basis functions.
-supp = bfc1 > 0;
+supp = (bfc1 > 0) | (bfc2 > 0);
 supp = full(sum(supp, 1))';
 
-% Plot sum of basis functions.
+% Plot overlap of support.
 figure(1);
 daspect([1, 1, 1]);
 hold on;
@@ -520,3 +517,5 @@ set(gca, 'FontName', 'Helvetica' );
 set(gca, 'FontSize', 14);
 colorbar;
 view(3);
+export_fig(fullfile(outputPath, 'vbasisfun-overlap.png'), '-png', quality, '-transparent', '-a1', figure(1));
+close all;
