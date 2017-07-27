@@ -121,4 +121,20 @@ set(gca, 'XTick', -200:20:200);
 set(gca, 'YTick', -200:20:200);
 streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
 
+% Set seed points for streamlines.
+[xs, ys] = meshgrid(-400:15:400, -400:15:400);
+
+% Set parameters.
+stepsize = 1;
+maxit = 10;
+lineWidth = 1;
+
+% Plot streamlines for flow.
+figure(9);
+colormap('summer');
+hold on;
+view(2);
+adjust3dplot;
+streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
+
 end
