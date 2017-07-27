@@ -47,7 +47,7 @@ mkdir(outputPath);
 load(fullfile('data', 'cmapblue.mat'));
 
 % Specify max. memory for matrix multiplication.
-mem = 3*1024^3;
+mem = 5*1024^3;
 
 % Define Gaussian filter.
 sigma = 1.5;
@@ -72,14 +72,13 @@ layers = 40;
 
 % Set subdivision parameter (number of basis functions is approx. 10*4^n).
 ref = 5;
-% ref = 6;
 
 % Set parameters for basis function.
 k = 3;
 h = 0.995;
 
 % Define degree of integration.
-deg = 400;
+deg = 500;
 
 % Read dataset.
 [f, scale] = loaddata(file, 1, frames);
@@ -222,6 +221,11 @@ fd2 = cell2mat(evaldata(f2, scale, {S}, sc, bandwidth, layers));
 % Compute synthesis for midpoints.
 [ICS, ~] = surfsynth(Ns, IC, cs{t});
 
+% Compute coordinates of evaluation points.
+[az, el, ~] = cart2sph(IC(:, 1), IC(:, 2), IC(:, 3));
+el = pi/2 - el;
+xi = [el, az];
+
 % Compute surface normals.
 N = surfnormals(Ns, cs{t}, xi);
 
@@ -231,11 +235,6 @@ Vs = bsxfun(@times, dtrho, IC);
 
 % Evaluate basis functions at vertices.
 [bfc1, bfc2] = vbasiscompmem(k, h, X, IC, mem);
-
-% Compute coordinates of evaluation points.
-[az, el, ~] = cart2sph(IC(:, 1), IC(:, 2), IC(:, 3));
-el = pi/2 - el;
-xi = [el, az];
 
 % Compute tangent basis.
 [d1, d2] = surftanbasis(Ns, cs{t}, xi);
@@ -319,10 +318,6 @@ export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-%s-%s-%.3i.png', name,
 close all;
 
 %% Compute total motion.
-
-% Compute surface velocity.
-dtrho = surfsynth(Ns, IC, (cs{t+1} - cs{t}) / dt);
-Vs = bsxfun(@times, dtrho, IC);
 
 % Compute scalar normal part of surface velocity.
 Vsn = dot(Vs, N, 2);
