@@ -224,10 +224,9 @@ fd2 = cell2mat(evaldata(f2, scale, {S}, sc, bandwidth, layers));
 % Compute coordinates of evaluation points.
 [az, el, ~] = cart2sph(IC(:, 1), IC(:, 2), IC(:, 3));
 el = pi/2 - el;
-xi = [el, az];
 
 % Compute surface normals.
-N = surfnormals(Ns, cs{t}, xi);
+N = surfnormals(Ns, cs{t}, [el, az]);
 
 % Compute surface velocity.
 dtrho = surfsynth(Ns, IC, (cs{t+1} - cs{t}) / dt);
@@ -237,7 +236,7 @@ Vs = bsxfun(@times, dtrho, IC);
 [bfc1, bfc2] = vbasiscompmem(k, h, X, IC, mem);
 
 % Compute tangent basis.
-[d1, d2] = surftanbasis(Ns, cs{t}, xi);
+[d1, d2] = surftanbasis(Ns, cs{t}, [el, az]);
 
 %% Compute optical flow.
 
