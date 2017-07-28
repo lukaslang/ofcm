@@ -58,7 +58,7 @@ fx = zeros(n, 1);
 alpha = 1;
 
 % Compute coefficients for optical flow.
-cmc = cm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fx, alpha);
+cmc = cm(Ns, cs, cs, 1, X, k, h, xi, w, gradfx, dtfx, fx, alpha);
 verifyEqual(testCase, size(cmc), [2*size(X, 1), 1]);
 verifyEqual(testCase, cmc, zeros(2*size(X, 1), 1), 'absTol', 1e-16);
 
@@ -110,7 +110,7 @@ gradfx = surfgrad(N, c, xi);
 alpha = 1;
 
 % Compute coefficients for optical flow.
-cmc = cm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, f1, alpha);
+cmc = cm(Ns, cs, cs, 1, X, k, h, xi, w, gradfx, dtfx, f1, alpha);
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(5);
@@ -232,7 +232,7 @@ gradfx = squeeze(u(1, :, :));
 alpha = 1;
 
 % Compute coefficients for optical flow.
-cmc = cm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, alpha);
+cmc = cm(Ns, cs, cs, 1, X, k, h, xi, w, gradfx, dtfx, fd{1}, alpha);
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(5);
@@ -364,7 +364,7 @@ gamma = 1;
 
 % Compute coefficients for optical flow.
 % Compute optimality conditions.
-[~, A, D, E, G, b] = optcondcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
+[~, A, D, E, G, b] = optcondcm(Ns, cs, cs, 1, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
 
 % Solve linear system.
 [cmc, ~] = solvesystem(A + alpha * D + beta * E + gamma * G, b, 1e-6, min(1000, size(A, 1)));

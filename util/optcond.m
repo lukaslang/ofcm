@@ -15,7 +15,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 function [dim, A, D, E, b] = optcond(Ns, cs, X, k, h, xi, w, gradf, dtdf, s, mem)
-%SURFLINEARSYSTEM Computes the optimality conditions and returns a linear 
+%OPTCOND Computes the optimality conditions and returns a linear 
 %system used in optical flow on a sphere-like surface.
 %
 %   [dim, A, D, E, b] = OPTCOND(Ns, cs, X, k, h, xi, w, gradf, dtdf, s) 

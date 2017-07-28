@@ -69,8 +69,8 @@ gradfx = squeeze(u(1, :, :));
 [~, X] = halfsphTriang(ref);
 
 % Compute optimality conditions.
-[~, A, D, E, G, b] = optcondcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
-[~, ~, Acm, Dcm, Ecm, Gcm, ~, bcm] = optcondofcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
+[~, A, D, E, G, b] = optcondcm(Ns, cs, cs, 1, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
+[~, ~, Acm, Dcm, Ecm, Gcm, ~, bcm] = optcondofcm(Ns, cs, cs, 1, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
 verifyEqual(testCase, Acm, A, 'absTol', 1e-15);
 verifyEqual(testCase, Dcm, D, 'absTol', 1e-15);
 verifyEqual(testCase, Ecm, E, 'absTol', 1e-15);
@@ -79,7 +79,7 @@ verifyEqual(testCase, bcm, b, 'absTol', 1e-15);
 
 % Compute optimality conditions.
 [~, A, D, E, b] = optcond(Ns, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, 1024^3);
-[~, Aof, ~, Dof, Eof, ~, bof, ~] = optcondofcm(Ns, cs, cs, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
+[~, Aof, ~, Dof, Eof, ~, bof, ~] = optcondofcm(Ns, cs, cs, 1, X, k, h, xi, w, gradfx, dtfx, fd{1}, fd{1}, 1024^3);
 verifyEqual(testCase, Aof, A, 'absTol', 1e-15);
 verifyEqual(testCase, Dof, D, 'absTol', 1e-15);
 verifyEqual(testCase, Eof, E, 'absTol', 1e-15);

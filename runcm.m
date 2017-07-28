@@ -127,7 +127,7 @@ s = fx;
 t = 1;
 
 % Compute optimality conditions.
-[~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, s{t}, mem);
+[~, A, D, E, G, b] = optcondcm(Ns, cs{t}, cs{t+1}, dt, X, k, h, xi, w, gradfx{t}, dtfx{t}, fx{t}, s{t}, mem);
 
 % Solve linear system.
 ofc = (A + alpha * D + beta * E + gamma * G) \ b;

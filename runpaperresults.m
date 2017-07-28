@@ -211,7 +211,7 @@ clear Sy2;
 
 fprintf('Computing optimaly conditions.\n');
 timerVal = tic;
-[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
+[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, dt, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
 elapsed = toc(timerVal);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
@@ -361,7 +361,7 @@ segfh = @(x) double(im2bw(x, graythresh(x)));
 
 fprintf('Computing optimaly conditions.\n');
 timerVal = tic;
-[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
+[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, dt, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
 elapsed = toc(timerVal);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
@@ -443,7 +443,7 @@ segfh = @(x) ones(size(x, 1), 1);
 
 fprintf('Computing optimaly conditions.\n');
 timerVal = tic;
-[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
+[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, dt, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
 elapsed = toc(timerVal);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 

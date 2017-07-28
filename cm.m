@@ -14,18 +14,19 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
-function [cmc, L] = cm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, alpha)
+function [cmc, L] = cm(Ns, cs1, cs2, dt, X, k, h, xi, w, gradf, dtdf, f, alpha)
 %OFDM Computes coefficients of mass conservation.
 %   
-%   cmc = CM(Ns, cs1, cs2, x, k, h, xi, w, gradf, dtdf, alpha) takes degrees Ns
-%   and Fourier coefficients cs of the surface, center points X of basis 
-%   functions, degree k, a scaling factor h, quadrature rule [xi, w], and 
-%   gradient gradf of data, temporal derivative dtdf, data f, and a 
-%   regularisation parameter alpha, and returns the coefficients cmc of the
-%   solution.
+%   [cmc, L] = CM(Ns, cs1, cs2, dt, x, k, h, xi, w, gradf, dtdf, alpha) takes 
+%   degrees Ns and Fourier coefficients cs1 and cs2 of the surface, a
+%   temporal sclaing parameter dt, center points X of basis functions, 
+%   degree k, a scaling factor h, quadrature rule [xi, w], and gradient 
+%   gradf of data, temporal derivative dtdf, data f, and a regularisation 
+%   parameter alpha, and returns the coefficients cmc of the solution.
 %
 %   Ns is a vector of consecutive non-negative integers.
-%   cs is a vector of Fourier coefficients (according to degrees Ns).
+%   cs1, cs2 are vectors of Fourier coefficients (according to degrees Ns).
+%   dt > 0 is a temporal scaling parameter.
 %   X is a matrix [m, 3] of points on the 2-sphere.
 %   k is an integer degree of basis functions.
 %   h in [-1, 1] is a scaling factor.
@@ -44,7 +45,7 @@ function [cmc, L] = cm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, alpha)
 mem = 1024^3;
 
 % Compute optimality conditions.
-[~, A, D, ~, ~, b] = optcondcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, ones(size(f, 1), 1), mem);
+[~, A, D, ~, ~, b] = optcondcm(Ns, cs1, cs2, dt, X, k, h, xi, w, gradf, dtdf, f, ones(size(f, 1), 1), mem);
 
 % Solve linear system.
 [cmc, L] = solvesystem(A + alpha * D, b, 1e-6, min(1000, size(A, 1)));

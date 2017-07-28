@@ -14,22 +14,23 @@
 %
 %    You should have received a copy of the GNU General Public License
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
-function [dim, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, s, mem)
+function [dim, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs1, cs2, dt, X, k, h, xi, w, gradf, dtdf, f, s, mem)
 %OPTCONDOFCM Computes the optimality conditions and returns a linear 
 %system used in optical and flow and mass conservation on a sphere-like surface.
 %
-%   [dim, A, D, E, G, b] = OPTCONDCM(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, s) 
+%   [dim, Aof, Acm, D, E, G, bof, bcm] = OPTCONDOFCM(Ns, cs1, cs2, dt, X, k, h, xi, w, gradf, dtdf, f, s) 
 %   takes degrees Ns and Fourier coefficients cs1, cs2 of the surface, 
 %   center points X of basis functions, degree k, a scaling factor h, 
 %   quadrature rule [xi, w], and  gradient gradf of data, temporal 
 %   derivative dtdf, data f, and a segmentation s, and returns the linear 
 %   system representing the optimality conditions.
 %
-%   [dim, A, D, E, G, b] = OPTCONDCM(Ns, cs1, cs2, X, k, h, xi, w, gradf, dtdf, f, s, mem)
+%   [dim, Aof, Acm, D, E, G, bof, bcm] = OPTCONDOFCM(Ns, cs1, cs2, dt, X, k, h, xi, w, gradf, dtdf, f, s, mem)
 %   uses mem > 0 bytes for matrix multiplication.
 %
 %   Ns is a vector of consecutive non-negative integers.
 %   cs1, cs2 are vectors of Fourier coefficients (according to degrees Ns).
+%   dt > 0 is the temporal spacing.
 %   X is a matrix [m, 3] of points on the 2-sphere.
 %   k is an integer degree of basis functions.
 %   h in [-1, 1] is a scaling factor.
@@ -109,7 +110,7 @@ intf = w .* rho .* sqrt(gradrhosquared + rho.^2);
 N = surfnormals(Ns, cs1, xi);
 
 % Compute scalar normal part of surface velocity.
-[~, dtrho] = surfsynth(Ns, Y, cs2 - cs1);
+[~, dtrho] = surfsynth(Ns, Y, (cs2 - cs1) / dt);
 V = dtrho .* dot(Y, N, 2);
 
 % Compute dot product of surface velocity with gradient of data.
