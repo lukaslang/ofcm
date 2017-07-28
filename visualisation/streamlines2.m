@@ -33,6 +33,7 @@ verts = cell(size(S, 1), 1);
 F1 = scatteredInterpolant(P, v(:, 1), 'linear', 'none');
 F2 = scatteredInterpolant(P, v(:, 2), 'linear', 'none');
 
+% Integrate flow.
 for k=1:length(verts)
     posx = S(k, 1);
     posy = S(k, 2);
@@ -40,7 +41,12 @@ for k=1:length(verts)
     for l=1:maxit
         x = posx + stepsize * F1(posx, posy);
         y = posy + stepsize * F2(posx, posy);
+        % Stop if point has moved out of convex hull.
         if(isnan(x) || isnan(y))
+            break;
+        end
+        % Stop if point hasen't moved.
+        if(hypot(x - posx, y - posy) <= eps)
             break;
         end
         verts{k} = [verts{k}; x, y];
@@ -55,6 +61,7 @@ cmaps = colormap(cmap);
 y = linspace(max(c),min(c),size(cmaps,1));
 cm = spline(y, cmaps', c);
 
+% Plot lines.
 for l=1:maxit-1
     X = [];
     Y = [];

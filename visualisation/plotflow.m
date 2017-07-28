@@ -7,6 +7,9 @@ faceAlpha = 0.5;
 % Set line with of arrows.
 lineWidth = 1;
 
+% Set colormap for streamlines.
+cmaps = 'summer';
+
 % Create colourwheel.
 cw = colourwheelbg;
 
@@ -71,14 +74,14 @@ lineWidth = 1;
 
 % Plot streamlines for flow.
 figure(7);
-colormap('summer');
+colormap(cmaps);
 hold on;
 view(2);
 adjust3dplot;
 axis([-130, -60, 115, 185]);
 set(gca, 'XTick', -200:20:200);
 set(gca, 'YTick', -200:20:200);
-streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
+streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, cmaps, lineWidth);
 
 % Second cell division.
 figure(5);
@@ -112,14 +115,14 @@ lineWidth = 1;
 
 % Plot streamlines for flow.
 figure(8);
-colormap('summer');
+colormap(cmaps);
 hold on;
 view(2);
 adjust3dplot;
 axis([115, 185, -135, -65]);
 set(gca, 'XTick', -200:20:200);
 set(gca, 'YTick', -200:20:200);
-streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
+streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, cmaps, lineWidth);
 
 % Set seed points for streamlines.
 [xs, ys] = meshgrid(-400:15:400, -400:15:400);
@@ -131,10 +134,10 @@ lineWidth = 1;
 
 % Plot streamlines for flow.
 figure(9);
-colormap('summer');
+colormap(cmaps);
 hold on;
 view(2);
 adjust3dplot;
-streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, 'summer', lineWidth);
+streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, cmaps, lineWidth);
 
 end
