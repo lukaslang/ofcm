@@ -181,7 +181,6 @@ clear Zm;
 
 % Select pair of frames.
 t = 63;
-t = 91;
 
 % Select data.
 f1 = f(t);
@@ -543,5 +542,53 @@ view(3);
 
 if(savefigs)
     export_fig(fullfile(outputPath, 'vbasisfun-overlap.png'), '-png', quality, '-transparent', '-a1', figure(1));
+end
+close all;
+
+%% Vectorial basis function.
+
+% Set parameters of basis function.
+k = 3;
+h = 0.6;
+
+% Create center point x of basis function.
+x = [0, 0, 1];
+m = size(x, 1);
+
+% Create triangulation for visualization purpose.
+[Fb, Vb] = sphTriang(7);
+
+% Create basis functions.
+b = basisfun(k, h, x, Vb);
+
+% Create basis functions.
+[Fv, Vv] = sphTriang(3);
+y = vbasisfun(k, h, x, Vv);
+
+% Permute for plotting.
+u = permute(y(1:m, :, :), [2, 3, 1]);
+v = permute(y(m+1:end, :, :), [2, 3, 1]);
+
+% Plot basis functions.
+figure(1);
+hold on;
+trisurf(Fb, Vb(:, 1), Vb(:, 2), Vb(:, 3), b, 'EdgeColor', 'none', 'FaceColor', 'interp');
+daspect([1, 1, 1]);
+set(gca, 'ZLim', [-1, 1]);
+set(gca, 'XLim', [-1, 1]);
+set(gca, 'YLim', [-1, 1]);
+set(gca, 'XTick', -1:0.5:1);
+set(gca, 'YTick', -1:0.5:1);
+set(gca, 'ZTick', -1:0.5:1);
+set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick', 'on', 'YMinorTick', 'on', 'ZMinorTick', 'on', 'YGrid', 'off');
+set(gca, 'FontName', 'Helvetica' );
+set(gca, 'FontSize', 14);
+view(3);
+colorbar;
+quiver3(Vv(:, 1), Vv(:, 2), Vv(:, 3), u(:, 1), u(:, 2), u(:, 3), 'r');
+quiver3(Vv(:, 1), Vv(:, 2), Vv(:, 3), v(:, 1), v(:, 2), v(:, 3), 'w');
+
+if(savefigs)
+    export_fig(fullfile(outputPath, 'vbasisfun.png'), '-png', quality, '-transparent', '-a1', figure(1));
 end
 close all;
