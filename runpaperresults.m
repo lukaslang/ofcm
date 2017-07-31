@@ -146,7 +146,7 @@ Ym = cellfun(@(x) reshape(x(:, 2), nsphere-2, nsphere), Vm, 'UniformOutput', fal
 Zm = cellfun(@(x) reshape(x(:, 3), nsphere-2, nsphere), Vm, 'UniformOutput', false);
 
 % Select frames to render.
-selFrames = 1:50:length(frames);
+selFrames = 63:63+10;
 
 for t=selFrames
     % Compute synthesis for vertices.
@@ -169,6 +169,41 @@ for t=selFrames
         export_fig(fullfile(outputPath, sprintf('data2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
         export_fig(fullfile(outputPath, sprintf('data3-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
         export_fig(fullfile(outputPath, sprintf('data2-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
+    
+    % Compute synthesis for midpoints.
+    [ICS, ~] = surfsynth(Ns, IC, cs{t});
+
+    % Compute surface velocity.
+    dtrho = surfsynth(Ns, IC, (cs{t+1} - cs{t}) / dt);
+    Vs = bsxfun(@times, dtrho, IC);
+    
+    % Plot surface velocity.
+    plotflow(F, S, ICS, fd, fd, Vs, cmap);
+    
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('surfvel2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+    end
+    close all;
+
+    % Compute coordinates of evaluation points.
+    [az, el, ~] = cart2sph(IC(:, 1), IC(:, 2), IC(:, 3));
+    el = pi/2 - el;
+
+    % Compute surface normals.
+    N = surfnormals(Ns, cs{t}, [el, az]);
+    
+    % Compute scalar normal part of surface velocity.
+    Vsn = dot(Vs, N, 2);
+    
+    % Plot normal surface velocity.
+    plotflow(F, S, ICS, fd, fd, bsxfun(@times, Vsn, N), cmap);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('surfveln2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
     end
     close all;
 end
@@ -292,6 +327,8 @@ plotflow(F, S, ICS, fd1, fd2, U, cmap);
 if(savefigs)
     export_fig(fullfile(outputPath, sprintf('of-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
     export_fig(fullfile(outputPath, sprintf('of-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+    export_fig(fullfile(outputPath, sprintf('of-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+    export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
     export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
@@ -349,6 +386,8 @@ plotflow(F, S, ICS, fd1, fd2, U, cmap);
 if(savefigs)
     export_fig(fullfile(outputPath, sprintf('cm-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
     export_fig(fullfile(outputPath, sprintf('cm-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+    export_fig(fullfile(outputPath, sprintf('cm-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+    export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
     export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
