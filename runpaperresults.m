@@ -73,7 +73,7 @@ ref = 5;
 
 % Set parameters for basis function.
 k = 3;
-h = 0.995;
+h = 0.99;
 
 % Define degree of integration.
 deg = 400;
@@ -141,8 +141,7 @@ Ym = cellfun(@(x) reshape(x(:, 2), nsphere-2, nsphere), Vm, 'UniformOutput', fal
 Zm = cellfun(@(x) reshape(x(:, 3), nsphere-2, nsphere), Vm, 'UniformOutput', false);
 
 % Select frames to render.
-%selFrames = 63:65;
-selFrames = 13:15;
+selFrames = [13, 14, 1:10:length(frames)];
 
 for t=selFrames
     % Compute synthesis for vertices.
@@ -180,7 +179,7 @@ for t=selFrames
     
     % Save figures.
     if(savefigs)
-        export_fig(fullfile(outputPath, sprintf('surfvel2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        %export_fig(fullfile(outputPath, sprintf('surfvel2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
     end
     close all;
 
@@ -199,7 +198,7 @@ for t=selFrames
 
     % Save figures.
     if(savefigs)
-        export_fig(fullfile(outputPath, sprintf('surfveln2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        %export_fig(fullfile(outputPath, sprintf('surfveln2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
     end
     close all;
 end
@@ -208,15 +207,17 @@ clear Xm;
 clear Ym;
 clear Zm;
 
-%% Compute optimality conditions.
+%% Select pair of frames and clear data.
 
-% Select pair of frames.
-t = 63;
+% Select frame.
+t = 13;
 
 % Select data.
 f1 = f(t);
 f2 = f(t+1);
 clear f;
+
+%% Compute optimality conditions.
 
 % Compute synthesis of evaluation points.
 Sy1 = surfsynth(Ns, Y, cs{t});
@@ -549,6 +550,53 @@ if(savefigs)
     %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
     %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
     %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+end
+close all;
+
+%% Use epsilon-regularised segmentation.
+
+% Create epsilon-regularised segmentation.
+epsreg = 1e-4;
+segfh = @(x) epsreg*(x < epsreg) + (1 - epsreg)*(x > 1 - epsreg) + x.*(epsreg <= x & x <= 1 - epsreg);
+
+fprintf('Computing optimaly conditions.\n');
+timerVal = tic;
+[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, dt, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
+elapsed = toc(timerVal);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Set regularisation parameters.
+alpha = 0.1;
+beta = 0;
+
+% Create folder string with parameters.
+folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
+
+% Solve linear system for optical flow.
+timerVal = tic;
+c = (Aof + alpha * D + beta * E) \ bof;
+relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
+elapsed = toc(timerVal);
+fprintf('Relative residual %e.\n', relres);
+fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+% Compute flow.
+w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+% Plot flow.
+plotflow(F, S, ICS, fd1, fd2, w, cmap);
+
+% Save figures.
+if(savefigs)
+    export_fig(fullfile(outputPath, sprintf('of-flow3-epsreg-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+    export_fig(fullfile(outputPath, sprintf('of-flow2-epsreg-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-epsreg-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-epsreg-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+    export_fig(fullfile(outputPath, sprintf('of-flow2-epsreg-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+    export_fig(fullfile(outputPath, sprintf('of-flow2-epsreg-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-epsreg-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-epsreg-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-epsreg-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
 
