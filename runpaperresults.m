@@ -567,7 +567,7 @@ fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
 % Set regularisation parameters.
 alpha = 0.1;
-beta = 0;
+beta = 0.001;
 
 % Create folder string with parameters.
 folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
