@@ -15,12 +15,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 
-% This script loads the data, computes optimality conditions, and outputs
-% several files:
-%
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-data.mat
-%   results/[name]/[yyyy-mm-dd-HH-MM-SS]-linsys-000.mat
-%
+% This script reproduces the results/figures from the paper. 
 clear;
 close all;
 clc;
@@ -31,7 +26,7 @@ path = fullfile(datapath, 'LSM 16.03.2012');
 file = fullfile(path, strcat(name, '.lsm'));
 
 % Select frames.
-frames = 50:151;
+frames = 100:151;
 
 % Define render quality (set to '-r600' for print quality).
 quality = '-r100';
@@ -50,7 +45,7 @@ load(fullfile('data', 'cmapblue.mat'));
 savefigs = true;
 
 % Specify max. memory for matrix multiplication.
-mem = 5*1024^3;
+mem = 3*1024^3;
 
 % Define Gaussian filter.
 sigma = 1.5;
@@ -146,7 +141,8 @@ Ym = cellfun(@(x) reshape(x(:, 2), nsphere-2, nsphere), Vm, 'UniformOutput', fal
 Zm = cellfun(@(x) reshape(x(:, 3), nsphere-2, nsphere), Vm, 'UniformOutput', false);
 
 % Select frames to render.
-selFrames = 63:63+10;
+%selFrames = 63:65;
+selFrames = 13:15;
 
 for t=selFrames
     % Compute synthesis for vertices.
@@ -162,11 +158,11 @@ for t=selFrames
     if(savefigs)
         export_fig(fullfile(outputPath, sprintf('rho2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
         export_fig(fullfile(outputPath, sprintf('raw3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-        export_fig(fullfile(outputPath, sprintf('raw3-%s-surf-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+        %export_fig(fullfile(outputPath, sprintf('raw3-%s-surf-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
         export_fig(fullfile(outputPath, sprintf('raw3-%s-surf-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(4));
         export_fig(fullfile(outputPath, sprintf('raw3-%s-cross-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-        export_fig(fullfile(outputPath, sprintf('data3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(6));
-        export_fig(fullfile(outputPath, sprintf('data2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+        %export_fig(fullfile(outputPath, sprintf('data3-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(6));
+        %export_fig(fullfile(outputPath, sprintf('data2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
         export_fig(fullfile(outputPath, sprintf('data3-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
         export_fig(fullfile(outputPath, sprintf('data2-%s-grid-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
     end
@@ -305,13 +301,13 @@ plotflow(F, S, ICS, fd1, fd2, w, cmap);
 if(savefigs)
     export_fig(fullfile(outputPath, sprintf('of-flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
     export_fig(fullfile(outputPath, sprintf('of-flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
     export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
     export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
     export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
 
@@ -325,11 +321,11 @@ plotflow(F, S, ICS, fd1, fd2, U, cmap);
 
 % Save figures.
 if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('of-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    export_fig(fullfile(outputPath, sprintf('of-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+    %export_fig(fullfile(outputPath, sprintf('of-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+    %export_fig(fullfile(outputPath, sprintf('of-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
     export_fig(fullfile(outputPath, sprintf('of-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
     export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    %export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
 
@@ -361,13 +357,13 @@ plotflow(F, S, ICS, fd1, fd2, u, cmap);
 if(savefigs)
     export_fig(fullfile(outputPath, sprintf('cm-flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
     export_fig(fullfile(outputPath, sprintf('cm-flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
     export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
     export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
     export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
 
@@ -384,95 +380,95 @@ plotflow(F, S, ICS, fd1, fd2, U, cmap);
 
 % Save figures.
 if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('cm-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    export_fig(fullfile(outputPath, sprintf('cm-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+    %export_fig(fullfile(outputPath, sprintf('cm-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+    %export_fig(fullfile(outputPath, sprintf('cm-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
     export_fig(fullfile(outputPath, sprintf('cm-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
     export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    %export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
 
 %% Use automatic thresholding for segmentation.
-
-% Use automatic thresholding.
-segfh = @(x) double(im2bw(x, graythresh(x)));
-
-fprintf('Computing optimaly conditions.\n');
-timerVal = tic;
-[~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, dt, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
-elapsed = toc(timerVal);
-fprintf('Elapsed time is %.6f seconds.\n', elapsed);
-
-% Set regularisation parameters.
-alpha = 0.1;
-beta = 0.001;
-
-% Create folder string with parameters.
-folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
-
-% Solve linear system for optical flow.
-timerVal = tic;
-c = (Aof + alpha * D + beta * E) \ bof;
-relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
-elapsed = toc(timerVal);
-fprintf('Relative residual %e.\n', relres);
-fprintf('Elapsed time is %.6f seconds.\n', elapsed);
-
-% Compute flow.
-w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
-
-% Plot flow.
-plotflow(F, S, ICS, fd1, fd2, w, cmap);
-
-% Save figures.
-if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('of-flow3-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
-end
-close all;
-
-% Set regularisation parameters.
-alpha = 0.01;
-beta = 0.001;
-gamma = 0.005;
-
-% Create folder string with parameters.
-folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
-
-% Solve linear system for mass conservation.
-timerVal = tic;
-c = (Acm + alpha * D + beta * E + gamma * G) \ bcm;
-relres = norm((Acm + alpha * D + beta * E + gamma * G) * c - bcm) / norm(bcm);
-elapsed = toc(timerVal);
-fprintf('Relative residual %e.\n', relres);
-fprintf('Elapsed time is %.6f seconds.\n', elapsed);
-
-% Compute flow.
-u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
-
-% Plot flow.
-plotflow(F, S, ICS, fd1, fd2, u, cmap);
-
-% Save figures.
-if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('cm-flow3-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
-end
-close all;
+% 
+% % Use automatic thresholding.
+% segfh = @(x) double(im2bw(x, graythresh(x)));
+% 
+% fprintf('Computing optimaly conditions.\n');
+% timerVal = tic;
+% [~, Aof, Acm, D, E, G, bof, bcm] = optcondofcm(Ns, cs{t}, cs{t+1}, dt, X, k, h, xi, weights, gradfx, dtfx, fx1, segfh(fx1), mem);
+% elapsed = toc(timerVal);
+% fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+% 
+% % Set regularisation parameters.
+% alpha = 0.1;
+% beta = 0.001;
+% 
+% % Create folder string with parameters.
+% folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
+% 
+% % Solve linear system for optical flow.
+% timerVal = tic;
+% c = (Aof + alpha * D + beta * E) \ bof;
+% relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
+% elapsed = toc(timerVal);
+% fprintf('Relative residual %e.\n', relres);
+% fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+% 
+% % Compute flow.
+% w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+% 
+% % Plot flow.
+% plotflow(F, S, ICS, fd1, fd2, w, cmap);
+% 
+% % Save figures.
+% if(savefigs)
+%     export_fig(fullfile(outputPath, sprintf('of-flow3-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+%     export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+% end
+% close all;
+% 
+% % Set regularisation parameters.
+% alpha = 0.01;
+% beta = 0.001;
+% gamma = 0.005;
+% 
+% % Create folder string with parameters.
+% folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
+% 
+% % Solve linear system for mass conservation.
+% timerVal = tic;
+% c = (Acm + alpha * D + beta * E + gamma * G) \ bcm;
+% relres = norm((Acm + alpha * D + beta * E + gamma * G) * c - bcm) / norm(bcm);
+% elapsed = toc(timerVal);
+% fprintf('Relative residual %e.\n', relres);
+% fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+% 
+% % Compute flow.
+% u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+% 
+% % Plot flow.
+% plotflow(F, S, ICS, fd1, fd2, u, cmap);
+% 
+% % Save figures.
+% if(savefigs)
+%     export_fig(fullfile(outputPath, sprintf('cm-flow3-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-graythresh-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-graythresh-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+%     export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-graythresh-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+% end
+% close all;
 
 %% Use constant one as segmentation.
 
@@ -508,15 +504,15 @@ plotflow(F, S, ICS, fd1, fd2, w, cmap);
 
 % Save figures.
 if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('of-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+    %export_fig(fullfile(outputPath, sprintf('of-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
     export_fig(fullfile(outputPath, sprintf('of-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
 
@@ -544,15 +540,15 @@ plotflow(F, S, ICS, fd1, fd2, u, cmap);
 
 % Save figures.
 if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('cm-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
     export_fig(fullfile(outputPath, sprintf('cm-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
 end
 close all;
 
@@ -623,7 +619,9 @@ set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.02, 0.02], 'XMinorTick
 set(gca, 'FontName', 'Helvetica' );
 set(gca, 'FontSize', 14);
 view(3);
-colorbar;
+cb = colorbar;
+pos = get(cb, 'position');
+set(cb, 'position', [pos(1), pos(2)+0.16, pos(3), 0.45]);
 quiver3(Vv(:, 1), Vv(:, 2), Vv(:, 3), u(:, 1), u(:, 2), u(:, 3), 'r');
 quiver3(Vv(:, 1), Vv(:, 2), Vv(:, 3), v(:, 1), v(:, 2), v(:, 3), 'w');
 
