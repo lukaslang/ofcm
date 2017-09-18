@@ -365,7 +365,7 @@ beta = 1;
 [~, A, D, E, b] = optcond(Ns, cs, X, k, h, xi, w, gradfx, dtfx, fd{1});
 
 % Solve linear system.
-[ofc, ~] = solvesystem(A + alpha * D + beta * E, b, 1e-6, 1000);
+[ofc, ~] = solvesystem(A + alpha * D + beta * E, b, 1e-6, size(A, 1));
 
 % Create triangulation for visualization purpose.
 [F, V] = halfsphTriang(5);

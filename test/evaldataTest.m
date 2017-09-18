@@ -69,3 +69,25 @@ verifyEqual(testCase, length(fx), 1);
 verifyEqual(testCase, size(fx{1}), [n, 1]);
 
 end
+
+function differentDimensionsTest(testCase)
+
+% Create evaluation points.
+[~, V] = sphTriang(4);
+n = size(V, 1);
+
+% Create artificial data.
+f = {ones(100, 200, 300); ones(100, 200, 300)};
+
+% Set scale.
+scale = [1, 1, 1] / 50;
+
+% Set offset.
+sc = [1, 1, 1];
+
+% Evaluate.
+fx = evaldata(f, scale, {V; V}, sc, [0.8, 1], 10);
+verifyEqual(testCase, length(fx), 2);
+verifyEqual(testCase, size(fx{1}), [n, 1]);
+
+end
