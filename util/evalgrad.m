@@ -31,6 +31,8 @@ function gradfx = evalgrad(f, scale, S, N, sc, bandwidth, layers)
 %   layers is a positive integer.
 %
 %   fx is a cell array of length k with each containing a vector.
+%
+%   Note that evalgrad switches axes of data!
 assert(all(size(scale) == [1, 3]));
 assert(length(f) == length(S));
 assert(length(f) == length(N));
@@ -38,11 +40,11 @@ assert(all(size(sc) == [1, 3]));
 
 % Create grid.
 [m, n, o] = size(f{1});
-[X, Y, Z] = ndgrid(1:m, 1:n, 1:o);
+[X, Y, Z] = ndgrid(1:n, 1:m, 1:o);
 
 % Scale grid.
-X = scale(1) * X;
-Y = scale(2) * Y;
+X = scale(2) * X;
+Y = scale(1) * Y;
 Z = scale(3) * Z;
 
 % Define narrow band around surface.
