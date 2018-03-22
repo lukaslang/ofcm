@@ -25,12 +25,12 @@ BibTeX:
 This software package requires parts of
 
 L. F. Lang and O. Scherzer. Optical Flow on Evolving Sphere-Like Surfaces,
-Inverse Probl. Imaging, 11(2):305?338, 2017.
+Inverse Probl. Imaging, 11(2):305-338, 2017.
 
 Available at https://dx.doi.org/10.3934/ipi.2017015
 Preprint available at https://arxiv.org/abs/1506.03358
 
-which requires parts of
+which iteself requires parts of
 
 C. Kirisits, L. F. Lang and O. Scherzer. Decomposition of optical flow on 
 the sphere, GEM. Int. J. Geomath., 5(1):117-141, April, 2014
@@ -68,7 +68,7 @@ tiffread.m is licensed under GNU GPL v3.
 
 3. Requirements
 
-This software was originally written for and tested with Matlab R2015a.
+This software was originally written for and tested with Matlab R2017b.
 
 The following libraries are required for parts of this sofware:
 
@@ -91,10 +91,10 @@ vol3dv2: used for plotting of volumetric microscopy data.
 https://de.mathworks.com/matlabcentral/fileexchange/22940-vol3d-v2
 
 Moreover, it requires the code of OFD (Decomposition of Optical Flow on the Sphere).
-Download/check it out from https://bitbucket.org/lukaslang/ofd
+Download/check it out from https://github.com/lukaslang/ofd
 
 Moreover, it requires the code of OFISH (Optical Flow on Evolving Sphere-Like Surfaces).
-Download/check it out from https://bitbucket.org/lukaslang/ofish
+Download/check it out from https://github.com/lukaslang/ofish
 
 4. Usage
 

@@ -250,7 +250,7 @@ while  ifd_pos ~= 0
                 TIF.PhotometricInterpretation = entry.val;
                 if ( TIF.PhotometricInterpretation == 3 )
                     %warning('tiffread:LookUp', 'Ignoring TIFF look-up table');
-                    fprintf(2, 'Ignoring TIFF look-up table in %s\n', image_name);
+                    %fprintf(2, 'Ignoring TIFF look-up table in %s\n', image_name);
                 end
             case 269
                 IMG.document_name = entry.val;
@@ -459,7 +459,7 @@ while  ifd_pos ~= 0
             if IMG.width ~= stack(1).width || IMG.height ~= stack(1).height
                 % setting read_img=0 will skip dissimilar images:
                 % comment-out the line below to allow dissimilar stacks
-                fprintf('Tiffread skipped %ix%i image\n', IMG.width, IMG.height);
+                %fprintf('Tiffread skipped %ix%i image\n', IMG.width, IMG.height);
                 continue;
             end
         end

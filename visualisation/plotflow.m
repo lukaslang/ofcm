@@ -68,8 +68,8 @@ view(2);
 [xs, ys] = meshgrid(-130:4:-60, 115:4:185);
 
 % Set parameters.
-stepsize = 1;
-maxit = 10;
+stepsize = 0.1;
+maxit = 30;
 lineWidth = 1;
 
 % Plot streamlines for flow.
@@ -109,8 +109,8 @@ view(2);
 [xs, ys] = meshgrid(115:4:185, -135:4:-65);
 
 % Set parameters.
-stepsize = 1;
-maxit = 10;
+stepsize = 0.1;
+maxit = 30;
 lineWidth = 1;
 
 % Plot streamlines for flow.
@@ -128,8 +128,8 @@ streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, cmaps, lin
 [xs, ys] = meshgrid(-400:15:400, -400:15:400);
 
 % Set parameters.
-stepsize = 1;
-maxit = 10;
+stepsize = 0.1;
+maxit = 30;
 lineWidth = 1;
 
 % Plot streamlines for flow.
