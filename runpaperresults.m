@@ -176,11 +176,11 @@ for t=selFrames
     Vs = bsxfun(@times, dtrho, IC);
     
     % Plot surface velocity.
-    plotflow(F, S, ICS, fd, fd, Vs, cmap);
+    plotflow(F, S, ICS, fd, fd, Vs, cmap, false);
     
     % Save figures.
     if(savefigs)
-        %export_fig(fullfile(outputPath, sprintf('surfvel2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        export_fig(fullfile(outputPath, sprintf('surfvel2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
     end
     close all;
 
@@ -195,11 +195,11 @@ for t=selFrames
     Vsn = dot(Vs, N, 2);
     
     % Plot normal surface velocity.
-    plotflow(F, S, ICS, fd, fd, bsxfun(@times, Vsn, N), cmap);
+    plotflow(F, S, ICS, fd, fd, bsxfun(@times, Vsn, N), cmap, false);
 
     % Save figures.
     if(savefigs)
-        %export_fig(fullfile(outputPath, sprintf('surfveln2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        export_fig(fullfile(outputPath, sprintf('surfveln2-%s-%.3i.png', name, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
     end
     close all;
 end
@@ -276,67 +276,134 @@ Vs = bsxfun(@times, dtrho, IC);
 % Compute tangent basis.
 [d1, d2] = surftanbasis(Ns, cs{t}, [el, az]);
 
-%% Compute optical flow.
+%% Compute optical flow for varying regularisation parameter alpha.
+
+% Set regularisation parameters.
+alphavals = [0.01, 0.1, 1];
+beta = 0.001;
+
+for l=1:length(alphavals)
+
+    % Set regularisation parameter.
+    alpha = alphavals(l);
+
+    % Create folder string with parameters.
+    folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
+
+    % Solve linear system for optical flow.
+    timerVal = tic;
+    c = (Aof + alpha * D + beta * E) \ bof;
+    relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
+    elapsed = toc(timerVal);
+    fprintf('Relative residual %e.\n', relres);
+    fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+    % Compute flow.
+    w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, w, cmap, false);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('of-flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+        %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+        %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
+
+    % Recover total velocity.
+    U = Vs + w;
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, U, cmap, false);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('of-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('of-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        export_fig(fullfile(outputPath, sprintf('of-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        %export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
+end
+
+%% Compute mass conservation flow for various regularisation parameters.
+
+% Set regularisation parameters.
+alphavals = [0.01, 0.1, 1];
+beta = 0.001;
+gamma = 0.001;
+
+for l=1:length(alphavals)
+
+    % Set regularisation parameter.
+    alpha = alphavals(l);
+
+    % Create folder string with parameters.
+    folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
+
+    % Solve linear system for mass conservation.
+    timerVal = tic;
+    c = (Acm + alpha * D + beta * E + gamma * G) \ bcm;
+    relres = norm((Acm + alpha * D + beta * E + gamma * G) * c - bcm) / norm(bcm);
+    elapsed = toc(timerVal);
+    fprintf('Relative residual %e.\n', relres);
+    fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+
+    % Compute flow.
+    u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, u, cmap, false);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('cm-flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        %export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+        %export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+        %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
+
+    % Compute scalar normal part of surface velocity.
+    Vsn = dot(Vs, N, 2);
+
+    % Recover total velocity.
+    U = bsxfun(@times, Vsn, N) + u;
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, U, cmap, false);
+
+    % Save figures.
+    if(savefigs)
+        %export_fig(fullfile(outputPath, sprintf('cm-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        %export_fig(fullfile(outputPath, sprintf('cm-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        export_fig(fullfile(outputPath, sprintf('cm-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        %export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
+end
+    
+%% Demonstrate the effect of parameter gamma.
 
 % Set regularisation parameters.
 alpha = 0.1;
-beta = 0.01;
-
-% Create folder string with parameters.
-folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
-
-% Solve linear system for optical flow.
-timerVal = tic;
-c = (Aof + alpha * D + beta * E) \ bof;
-relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
-elapsed = toc(timerVal);
-fprintf('Relative residual %e.\n', relres);
-fprintf('Elapsed time is %.6f seconds.\n', elapsed);
-
-% Compute flow.
-w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
-
-% Plot flow.
-plotflow(F, S, ICS, fd1, fd2, w, cmap);
-
-% Save figures.
-if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('of-flow3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
-end
-close all;
-
-%% Compute total motion.
-
-% Recover total velocity.
-U = Vs + w;
-
-% Plot flow.
-plotflow(F, S, ICS, fd1, fd2, U, cmap);
-
-% Save figures.
-if(savefigs)
-    %export_fig(fullfile(outputPath, sprintf('of-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    %export_fig(fullfile(outputPath, sprintf('of-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('of-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    %export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
-end
-close all;
-
-%% Mass conservation.
-
-% Set regularisation parameters.
-alpha = 0.01;
 beta = 0.001;
-gamma = 0.005;
+gamma = 0.1;
 
 % Create folder string with parameters.
 folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
@@ -353,7 +420,7 @@ fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
 
 % Plot flow.
-plotflow(F, S, ICS, fd1, fd2, u, cmap);
+plotflow(F, S, ICS, fd1, fd2, u, cmap, false);
 
 % Save figures.
 if(savefigs)
@@ -369,8 +436,6 @@ if(savefigs)
 end
 close all;
 
-%% Compute total motion.
-
 % Compute scalar normal part of surface velocity.
 Vsn = dot(Vs, N, 2);
 
@@ -378,7 +443,7 @@ Vsn = dot(Vs, N, 2);
 U = bsxfun(@times, Vsn, N) + u;
 
 % Plot flow.
-plotflow(F, S, ICS, fd1, fd2, U, cmap);
+plotflow(F, S, ICS, fd1, fd2, U, cmap, false);
 
 % Save figures.
 if(savefigs)
@@ -390,7 +455,7 @@ if(savefigs)
 end
 close all;
 
-%% Use constant one as segmentation.
+%% Use constant one as segmentation and compute optimality conditions.
 
 % Use constant one.
 segfh = @(x) ones(size(x, 1), 1);
@@ -401,76 +466,127 @@ timerVal = tic;
 elapsed = toc(timerVal);
 fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
+%% Compute optical flow for varying regularisation parameter alpha.
+
 % Set regularisation parameters.
-alpha = 0.1;
+alphavals = [0.01, 0.1, 1];
 beta = 0;
 
-% Create folder string with parameters.
-folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
+for l=1:length(alphavals)
 
-% Solve linear system for optical flow.
-timerVal = tic;
-c = (Aof + alpha * D + beta * E) \ bof;
-relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
-elapsed = toc(timerVal);
-fprintf('Relative residual %e.\n', relres);
-fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+    % Set regularisation parameter.
+    alpha = alphavals(l);
 
-% Compute flow.
-w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+    % Create folder string with parameters.
+    folderstr = sprintf('alpha-%.4g-beta-%.4g', alpha, beta);
 
-% Plot flow.
-plotflow(F, S, ICS, fd1, fd2, w, cmap);
+    % Solve linear system for optical flow.
+    timerVal = tic;
+    c = (Aof + alpha * D + beta * E) \ bof;
+    relres = norm((Aof + alpha * D + beta * E) * c - bof) / norm(bof);
+    elapsed = toc(timerVal);
+    fprintf('Relative residual %e.\n', relres);
+    fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
-% Save figures.
-if(savefigs)
-    export_fig(fullfile(outputPath, sprintf('of-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    % Compute flow.
+    w = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, w, cmap, true);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('of-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+        %export_fig(fullfile(outputPath, sprintf('of-flow2-detail1-one-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+        %export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail1-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        export_fig(fullfile(outputPath, sprintf('of-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
+
+    % Recover total velocity.
+    U = Vs + w;
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, U, cmap, true);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('of-motion3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('of-motion2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        export_fig(fullfile(outputPath, sprintf('of-motion2-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        export_fig(fullfile(outputPath, sprintf('of-motion2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
 end
-close all;
+
+%% Compute mass conserving flow for varying regularisation parameter alpha.
 
 % Set regularisation parameters.
-alpha = 0.01;
-beta = 0.001;
-gamma = 0.005;
+alphavals = [0.01, 0.1, 1];
+beta = 0;
+gamma = 0;
 
-% Create folder string with parameters.
-folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
+for l=1:length(alphavals)
 
-% Solve linear system for mass conservation.
-timerVal = tic;
-c = (Acm + alpha * D + beta * E + gamma * G) \ bcm;
-relres = norm((Acm + alpha * D + beta * E + gamma * G) * c - bcm) / norm(bcm);
-elapsed = toc(timerVal);
-fprintf('Relative residual %e.\n', relres);
-fprintf('Elapsed time is %.6f seconds.\n', elapsed);
+    % Set regularisation parameter.
+    alpha = alphavals(l);
 
-% Compute flow.
-u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+    % Create folder string with parameters.
+    folderstr = sprintf('alpha-%.4g-beta-%.4g-gamma-%.4g', alpha, beta, gamma);
 
-% Plot flow.
-plotflow(F, S, ICS, fd1, fd2, u, cmap);
+    % Solve linear system for mass conservation.
+    timerVal = tic;
+    c = (Acm + alpha * D + beta * E + gamma * G) \ bcm;
+    relres = norm((Acm + alpha * D + beta * E + gamma * G) * c - bcm) / norm(bcm);
+    elapsed = toc(timerVal);
+    fprintf('Relative residual %e.\n', relres);
+    fprintf('Elapsed time is %.6f seconds.\n', elapsed);
 
-% Save figures.
-if(savefigs)
-    %export_fig(fullfile(outputPath, sprintf('cm-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-    export_fig(fullfile(outputPath, sprintf('cm-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
-    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
-    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
-    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
-    %export_fig(fullfile(outputPath, sprintf('cm-flow2-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
-    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail1-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
-    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
-    %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    % Compute flow.
+    u = bsxfun(@times, full((bfc1')*c), d1) + bsxfun(@times, full((bfc2')*c), d2);
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, u, cmap, true);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('cm-flow3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        %export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(3));
+        %export_fig(fullfile(outputPath, sprintf('cm-flow2-detail1-one-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(4));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t)+1)), '-png', quality, '-transparent', '-a1', figure(6));
+        %export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-detail1-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(7));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        export_fig(fullfile(outputPath, sprintf('cm-flow2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
+
+    % Compute scalar normal part of surface velocity.
+    Vsn = dot(Vs, N, 2);
+
+    % Recover total velocity.
+    U = bsxfun(@times, Vsn, N) + u;
+
+    % Plot flow.
+    plotflow(F, S, ICS, fd1, fd2, U, cmap, true);
+
+    % Save figures.
+    if(savefigs)
+        export_fig(fullfile(outputPath, sprintf('cm-motion3-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('cm-motion2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        export_fig(fullfile(outputPath, sprintf('cm-motion2-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
+        export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-detail2-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
+        export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-one-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
+    end
+    close all;
 end
-close all;
 
 %% Plot overlap of basis functions.
 

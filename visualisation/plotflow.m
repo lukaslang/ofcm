@@ -1,11 +1,8 @@
-function plotflow(F, S, ICS, fd1, fd2, v, cmap)
+function plotflow(F, S, ICS, fd1, fd2, v, cmap, plotflowstreamlines)
 %PLOTFLOW Creates figures and plots results.
 
 % Set face alpha for detail.
 faceAlpha = 0.5;
-
-% Set line with of arrows.
-lineWidth = 1;
 
 % Set colormap for streamlines.
 cmaps = 'summer';
@@ -21,6 +18,16 @@ R = max(sqrt(sum(vp.^2, 2)));
 
 % Compute colour of projection.
 col = double(squeeze(computeColour(vp(:, 1)./R, vp(:, 2)./R))) ./ 255;
+
+% Compute length of longest projected tangent vector.
+lmax = max(sqrt(sum(v(:, 1:2).^2, 2)));
+
+% Set parameters for streamline computation.
+stepsize = 1/lmax;
+maxit = 50;
+
+% Set line with of arrows and streamlines.
+lineWidth = 1;
 
 % Plot colour-coded flow.
 figure(1);
@@ -67,11 +74,6 @@ view(2);
 % Set seed points for streamlines.
 [xs, ys] = meshgrid(-130:4:-60, 115:4:185);
 
-% Set parameters.
-stepsize = 0.1;
-maxit = 30;
-lineWidth = 1;
-
 % Plot streamlines for flow.
 figure(7);
 colormap(cmaps);
@@ -108,11 +110,6 @@ view(2);
 % Set seed points for streamlines.
 [xs, ys] = meshgrid(115:4:185, -135:4:-65);
 
-% Set parameters.
-stepsize = 0.1;
-maxit = 30;
-lineWidth = 1;
-
 % Plot streamlines for flow.
 figure(8);
 colormap(cmaps);
@@ -124,20 +121,21 @@ set(gca, 'XTick', -200:20:200);
 set(gca, 'YTick', -200:20:200);
 streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, cmaps, lineWidth);
 
-% Set seed points for streamlines.
-[xs, ys] = meshgrid(-400:15:400, -400:15:400);
+if(plotflowstreamlines)
+    % Set parameters for streamline computation.
+    stepsize = 15/(4*lmax);
+    maxit = 50;
+    
+    % Set seed points for streamlines.
+    [xs, ys] = meshgrid(-400:15:400, -400:15:400);
 
-% Set parameters.
-stepsize = 0.1;
-maxit = 30;
-lineWidth = 1;
-
-% Plot streamlines for flow.
-figure(9);
-colormap(cmaps);
-hold on;
-view(2);
-adjust3dplot;
-streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, cmaps, lineWidth);
+    % Plot streamlines for flow.
+    figure(9);
+    colormap(cmaps);
+    hold on;
+    view(2);
+    adjust3dplot;
+    streamlines2(ICS(:, 1:2), v(:, 1:2), [xs(:), ys(:)], stepsize, maxit, cmaps, lineWidth);
+end
 
 end
