@@ -15,7 +15,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with OFCM.  If not, see <http://www.gnu.org/licenses/>.
 
-% This script reproduces the results/figures from the paper. 
+% This script reproduces the results/figures from the paper.
 clear;
 close all;
 clc;
@@ -29,7 +29,7 @@ file = fullfile(path, strcat(name, '.lsm'));
 frames = 100:151;
 
 % Define render quality (set to '-r600' for print quality).
-quality = '-r100';
+quality = '-r300';
 
 % Create start date and time.
 startdate = datestr(now, 'yyyy-mm-dd-HH-MM-SS');
@@ -208,7 +208,7 @@ clear Xm;
 clear Ym;
 clear Zm;
 
-%% Select pair of frames and clear data.
+%% Select pair of frames, clear data, and compute surface gradient.
 
 % Select frame.
 t = 13;
@@ -217,8 +217,6 @@ t = 13;
 f1 = f(t);
 f2 = f(t+1);
 clear f;
-
-%% Compute optimality conditions.
 
 % Compute synthesis of evaluation points.
 Sy1 = surfsynth(Ns, Y, cs{t});
@@ -240,6 +238,8 @@ gradfx = cell2mat(evalgrad(f1, scale, {Sy1}, {N}, sc, bandwidth, layers));
 clear N;
 clear Sy1;
 clear Sy2;
+
+%% Compute optimality conditions.
 
 fprintf('Computing optimaly conditions.\n');
 timerVal = tic;
@@ -389,8 +389,8 @@ for l=1:length(alphavals)
 
     % Save figures.
     if(savefigs)
-        %export_fig(fullfile(outputPath, sprintf('cm-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
-        %export_fig(fullfile(outputPath, sprintf('cm-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
+        export_fig(fullfile(outputPath, sprintf('cm-motion3-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(1));
+        export_fig(fullfile(outputPath, sprintf('cm-motion2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(2));
         export_fig(fullfile(outputPath, sprintf('cm-motion2-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(5));
         export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-detail2-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(8));
         %export_fig(fullfile(outputPath, sprintf('cm-motion2-streamlines-%s-%s-%.3i.png', name, folderstr, frames(t))), '-png', quality, '-transparent', '-a1', figure(9));
