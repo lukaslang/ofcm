@@ -8,18 +8,18 @@ http://www.damtp.cam.ac.uk/people/ll542/
 
 This is a Matlab implementation as described in:
 
-L. F. Lang. Brightness and Mass Conservation Laws on Evolving Sphere-Like Surfaces, working draft, 2017.
+L. F. Lang. A Numerical Framework for Efficient Motion Estimation on Evolving Sphere-Like Surfaces based on Brightness and Mass Conservation Laws, 2018.
 
 If you use this software in your work you must cite the abovementioned paper in any resulting publication!
 
 BibTeX:
 
-@techreport{Lan17_report,
+@techreport{Lan18_report,
   author     = {Lang, L.~F.},
-  title      = {Brightness and Mass Conservation Laws on Evolving Sphere-Like Surfaces},
+  title      = {A Numerical Framework for Efficient Motion Estimation on Evolving Sphere-Like Surfaces based on Brightness and Mass Conservation Laws},
   institution= {DAMTP, University of Cambridge, United Kingdom},
-  type       = {Working draft},
-  year       = {2017}
+  type       = {preprint},
+  year       = {2018}
 }
 
 This software package requires parts of
@@ -91,9 +91,11 @@ vol3dv2: used for plotting of volumetric microscopy data.
 https://de.mathworks.com/matlabcentral/fileexchange/22940-vol3d-v2
 
 Moreover, it requires the code of OFD (Decomposition of Optical Flow on the Sphere).
+The version used is: https://doi.org/10.5281/zenodo.1238901
 Download/check it out from https://github.com/lukaslang/ofd
 
 Moreover, it requires the code of OFISH (Optical Flow on Evolving Sphere-Like Surfaces).
+The version used is: https://doi.org/10.5281/zenodo.1238904
 Download/check it out from https://github.com/lukaslang/ofish
 
 4. Usage
