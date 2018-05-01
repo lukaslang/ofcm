@@ -38,6 +38,11 @@ the sphere, GEM. Int. J. Geomath., 5(1):117-141, April, 2014
 Available at https://dx.doi.org/10.1007/s13137-013-0055-8
 Preprint available at https://arxiv.org/abs/1312.4354
 
+The computed results are based on the data:
+
+Aanstad, Pia. (2018). Time-lapse (4D) volumetric fluorescence microscopy image sequence of a living zebrafish embryo [Data set]. Zenodo. 
+URL: https://doi.org/10.5281/zenodo.1211598
+
 2. License & Disclaimer
 
 Copyright 2017 Lukas Lang.
@@ -121,6 +126,10 @@ The following run scripts are included:
 
 - runof.m (computes the optical flow on evolving sphere-like surfaces)
 - runcm.m (computes the mass conservation-based velocity on evolving sphere-like surfaces)
+
+The figures in the paper were created with the script:
+
+- runpaperresults.m
 
 For faster processing we recommend compiling the imgaussian.c script:
 
