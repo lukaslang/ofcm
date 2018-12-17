@@ -1,7 +1,8 @@
 OFCM - Brightness and Mass Conservation Laws on Evolving Sphere-Like Surfaces
 
 Lukas Lang (ll542@cam.ac.uk)
-Department of Applied Mathematics and Theoretical Physics, University of Cambridge, UK.
+Department of Applied Mathematics and Theoretical Physics
+University of Cambridge, UK.
 http://www.damtp.cam.ac.uk/people/ll542/
 
 1. Introduction
@@ -10,7 +11,7 @@ This is a Matlab implementation as described in:
 
 L. F. Lang. A Numerical Framework for Efficient Motion Estimation on Evolving Sphere-Like Surfaces based on Brightness and Mass Conservation Laws, 2018.
 
-If you use this software in your work you must cite the abovementioned paper in any resulting publication!
+If you use this software in your work please cite the abovementioned paper in any resulting publication.
 
 BibTeX:
 
@@ -18,7 +19,10 @@ BibTeX:
   author     = {Lang, L.~F.},
   title      = {A Numerical Framework for Efficient Motion Estimation on Evolving Sphere-Like Surfaces based on Brightness and Mass Conservation Laws},
   institution= {DAMTP, University of Cambridge, United Kingdom},
-  type       = {preprint},
+  number     = {arXiv:1805.01006},
+  numpages   = {12},
+  type       = {Preprint on ArXiv},
+  url        = {https://arxiv.org/abs/1805.01006},
   year       = {2018}
 }
 
