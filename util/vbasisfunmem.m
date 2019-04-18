@@ -28,6 +28,10 @@ function u = vbasisfunmem(k, h, x, y, mem)
 %   mem is a non-negative scalar.
 %
 %   u is of size [2*m, n, 3].
+%
+%   Note that this function only limits memory consumption during
+%   computation of the components! It sill requires a considerable amount
+%   of memory for the multiplication with the coordinate basis!
 
 % Compute components of basis functions.
 [dy1, dy2] = vbasiscompmem(k, h, x, y, mem);
