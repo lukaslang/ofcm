@@ -56,7 +56,7 @@ end
 [row, col, v] = find(ip);
 clear ip;
 
-% Evaluate basis functions at points xi.
+% Evaluate derivative of basis functions at points xi.
 b = sparse(row, col, k * ((v - h) .^ (k-1)) / (1 - h)^k, m, n);
 
 % Find coordinates.
